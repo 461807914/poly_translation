@@ -42,3 +42,8 @@ A * A
 64
 ```
 只有在`iscc` 中内置了对 `pet` 的支持时，`parse_file` 操作才可用。需要传递参数`--with-pet=bundled`到`configure`当中。这里`iscc`自动启动`pet`的自动检测。使用`--no-pet-autodetect`选项关闭。
+
+### 1.2.3 Python接口
+isl、pet 和 barvinok 中的每一个都带有一个 python 接口，其中 pet 版本与 isl 版本基本相同，而 barvinok 版本是 pet 版本的扩展版本。特别是，barvinok 版本还包含由 barvinok 库定义的函数的接口。这三个都称为 isl.py。 它们包含在各自的发行版中，但只有在使用 `--with-clang` 和/或 `--with-clang-prefix` 选项明确告诉 configure 去哪里找到 clang 时，才能（重新）构建它们。要实际构建接口，对于 isl 版本使用 (cd interface; make isl.py)，对于 pet 和 barvinok 版本使用 make isl.py。 python接口不是自动安装的，所以你通常需要调整你的PYTHONPATH指向isl构建树的interface子目录或者pet或barvinok的构建树。 您可能还需要调整 LD_LIBRARY_PATH 以指向安装 libisl.so、libpet.so 或 libbarvinok.so 的目录。 此外，您需要使用 `--enable-shared-barvinok` 选项配置 barvinok，以便首先构建 libbarvinok.so。 第 13 页的示例 2.7 中显示了如何使用 python 接口的简单说明。
+python 接口中类的名称是通过删除 isl_ 前缀从对应的 isl 派生而来的。 由于类包含在 isl 模块中，这意味着在实践中，第一个下划线需要用句点替换。 方法的名称通过删除类型名称前缀从相应的 isl 函数名称派生而来。 isl 中的一些函数名称有一个后缀，表示最终参数的类型。 这些后缀也从方法名称中删除。
+pet 发行版还包含一个名为 pet.py 的 Python 接口。 它基于 isl.py，需要来自 pet 或 barvinok 的版本。默认情况下，pet 的 python 接口不会打开自动检测选项。
