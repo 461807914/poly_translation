@@ -138,3 +138,56 @@ $(Q, B/1, (S, B/1, A/3))$
 #### Example 2.71
 $Q[B[5] → S[B[6] → A[2, 8, 1]]]$的值向量为$(5,6,2,8,1)$
 
+### 2.4.2 Wrapping and Unwrapping
+#### Example 2.72 (Wrap)
+一个二元关系R的wrap操作(简称WR)就是对R中每一对元素的的一个匿名wrap拷贝。表示如下:
+$WR = { [i → j] : i → j ∈ R }$
+
+在isl中该操作叫做`isl_union_map_wrap`，在iscc中，该操作写作`wrap`。
+
+#### Example 2.73
+
+输入为：
+```python
+wrap { A [2 ,8 ,1] -> B [5]; A [2 ,8 ,1] -> B [6]; B [5] -> B [5] };
+```
+输出为：
+```python
+{ [ A [2 , 8 , 1] -> B [6]]; [ A [2 , 8 , 1] -> B [5]]; [ B [5] -> B [5]] }
+```
+*就是给所有元素都套上一个[]*
+
+#### Operation 2.74 (UnWrap)
+一个集合S的unwrap表示为$W^{-1}S$, 是一个二元关系,集合S包含了被wrap的副本的元素对，写作:
+$W^{−1}S = { i → j : ∃n : n[i → j] ∈ S }$
+在isl，该操作写作`isl_union_set_unwrap`
+
+#### Example 2.75 
+iscc输入为
+```python
+S := { B [5]; S [ B [6] -> A [2 , 8 , 1]];
+       Q [ B [5] -> S [ B [6] -> A [2 , 8 , 1]]] };
+unwrap S ;
+```
+iscc输出为
+```python
+{ B [6] -> A [2 , 8 , 1]; B [5] -> S [ B [6] -> A [2 , 8 , 1]] }
+```
+
+当R为是一个二元关系，如果有$W^{-1}WR$,那么结果与$R$相同。但是当S是一个集合，如果对S操作$WW^{-1}S$，结果不一定是$S$。比如，当S中包含的元素没有被wrapped元素对，那么这些元素会被从集合中去掉。此外，如果任意的被wrapped的元素对有一个标识符(identifier),那么这个标识符也会被去掉。
+
+#### Example 2.76 
+iscc输入为：
+```python
+S := { B [5]; S [ B [6] -> A [2 , 8 , 1]];
+Q [ B [5] -> S [ B [6] -> A [2 , 8 , 1]]] };
+wrap ( unwrap S );
+```
+iscc输出为：
+```python
+{ [ B [6] -> A [2 , 8 , 1]]; [ B [5] -> S [ B [6] -> A [2 , 8 , 1]]] }
+```
+*可以看到经过wrap和unwrap操作后，B[5]不见了，标识符S和Q没了*
+
+#### Operation 2.77 (Set Product)
+bla bla
