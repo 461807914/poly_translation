@@ -189,5 +189,75 @@ iscc输出为：
 ```
 *可以看到经过wrap和unwrap操作后，B[5]不见了，标识符S和Q没了*
 
+### 2.4.3 Products
+两个集合（或二元关系）的乘积是将其参数中的元组组合成wrapped关系的集合（或二元关系）。 在二元关系的情况下，也可以只组合域(domain)或范围(range)。
+
 #### Operation 2.77 (Set Product)
+集合A和B的乘积$A×B$的表示是一个集合，该集合当中包含包含一堆wrapped的元素对，这些元素对的第一个元素来自A，第二个元素来自B。那么，两个集合的乘积就是两个集合一般关系之间的wrap。如下:
+$A × B = W(A → B) = { [i → j] : i ∈ A ∧ j ∈ B }$
+
+在isl中，该操作的函数为`isl_union_set_product`。在iscc中，该操作写为`cross`。
+
+
+#### Exmaple 2.78 
+对比23页的例子2.48，iscc的代码如下：
+```python
+S := { A [2 ,8 ,1]; B [5] };
+T := { A [2 ,8 ,1]; B [6] };
+S cross T ;
+```
+输出结果为：
+```python
+{ [ A [2 , 8 , 1] -> A [2 , 8 , 1]]; [ A [2 , 8 , 1] -> B [6]]; [ B [5] ->  A [2 , 8 , 1]]; [ B [5] -> B [6]] }
+```
+
+#### Operator 2.79 (Binary Relation Product)
+二元关系A和B的乘积$A×B$的表示是一个二元关系，该二元关系当中包含包含一堆wrapped的元素对，这些元素对的第一个元素来自A，第二个元素来自B。
+表示为：
+$A × B = { [i → m] → [j → n] : i → j ∈ A ∧ m → n ∈ B }$
+在isl当中，该操作记为：`isl_union_map_product`。在iscc中，该操作写作`cross`。
+如下面图2.4所示
+![Figure_2.4](./2.4.png)
+棕色虚线和蓝色点线表示Example 2.80中A和B图的二元关系，公式下以A和B的`range`做乘积的二元关系结果如图红色实线所示。
+
+
 bla bla
+
+
+### 2.4.4 Domain and Range Projection
+下面的操作以一个二元关系作为输入，并且产生一个新的二元关系，这个二元关系将输入的wrapped副本投影（projects)到其域（domain)或范围(range)。
+
+#### Operation 2.100 (Domain Projection)
+一个二元关系$R$的domain projection $\xrightarrow{dom}R$也是一个二元关系，该关系为R中的每对元素，经过domain project后得到的结果为一个R中wrapped元素对并指向这个元素对的第一个元素。如下：
+$\xrightarrow{dom}R = { [i → j] → i : i → j ∈ R }$
+
+在isl中，该操作记为`isl_union_map_domain_map`，也可以参考4.2节的Creation。在iscc中，该操作写为`domain_map`。
+
+#### Example 2.101 
+iscc的输入为：
+```python
+R := { A [2 ,8 ,1] -> B [5]; A [2 ,8 ,1] -> B [6]; B [5] -> B [5] };
+domain_map R ;
+```
+iscc的结果为：
+```python
+{ [ A [2 , 8 , 1] -> B [6]] -> A [2 , 8 , 1]; [ A [2 , 8 , 1] -> B [5]] -> A [2 , 8 , 1]; [ B [5] -> B [5]] -> B [5] }
+```
+
+#### Operation 2.102 (Range Projection)
+一个二元关系$R$的range projection $\xrightarrow{ran}R$也是一个二元关系，该关系为R中的每对元素，经过range project后得到的结果为一个R中wrapped元素对并指向这个元素对的第二个元素。
+如下：
+$\xrightarrow{ran}R = { [i → j] → j : i → j ∈ R }$
+
+在isl中，该操作为表示为`isl_union_map_range_map`。在iscc中，这个操作为`range_map`。
+
+#### Example 2.103
+iscc的输入：
+```python
+R := { A [2 ,8 ,1] -> B [5]; A [2 ,8 ,1] -> B [6]; B [5] -> B [5] };
+range_map R ;
+```
+iscc的输出：
+```python
+{ [ A [2 , 8 , 1] -> B [6]] -> B [6]; [ A [2 , 8 , 1] -> B [5]] -> B[5]; [ B [5] -> B [5]] -> B [5] }
+```
