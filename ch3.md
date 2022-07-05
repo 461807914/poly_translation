@@ -275,3 +275,68 @@ B <= A ;
 ```python
 True
 ```
+*在iscc中子集的表示是<=*
+
+### Operator 3.36 (Subrelation)
+二元关系A是二元关系B的自己，表示为$A \subseteq B$，条件是对于任意的常量符号值，如果所有在A中的元素对都包含在集合B中。如果$A \backslash B = ∅$。
+
+### Operation 3.37 (Strict Subset)
+集合A是集合B的严格子集（真子集），即$A \subsetneq B$，如果对于任意常量符号，A中所有的元素都包含在B中，并且B中有部分元素A中没有，$A \backslash B = ∅$并且 $A \neq B$。
+
+### Example 3.38
+在iscc中的输入为
+```python
+A := [ n ] -> { A [ i ] : i >= 0 };
+B := [ n ] -> { A [ i ] : i >= 0 and n >= 0 };
+B < A ;
+```
+```python
+True
+```
+
+### Operation 3.39 (Strict Subrelation)
+bla bla
+
+## 3.4 Syntactic Sugar
+
+### Notation 3.46 (False) 
+公式为假与$\neg \ true$等价
+
+### Notation 3.47 (Implication)
+公式 $a \Rightarrow b$ 与 $\neg a \lor b$
+
+*离散数学 逻辑表达中的“蕴含”关系*
+
+遵循第 42 页的 Notation 3.4 和第 42 页的 Notation 3.5 中的元组模板的公式是可选的。 如果公式缺失，则认为它是正确的。
+
+### Exmaple 3.48
+iscc 输入
+```python
+A := { A [ i ] : true };
+B := { A [ i ] };
+A = B ;
+```
+```python
+True
+```
+元组模板中的变量可以被 Presburger 项替换，这些项仅涉及出现在模板中较早位置的变量。
+
+### Notation 3.49 (二元关系rewritten)
+设$V = (v_1,..., v_n) = V_t$ 为元组模板的变量 $t$。一个元素的描述$t$的表达方式$v_k = g(v_1,...,v_{k-1} \land f(v))$可以重写为$t \{v_k \mapsto g(v_1,...,v_{k-1}) \}: f(v)$
+
+### Exmaple 3.50
+二元关系 $\{S[i] \mapsto S[i+1]\}$ 等价于 $\{S[i] \mapsto S[j] : j = i + 1 \}$
+
+但是请注意，语法 $\{ S[j−1] \mapsto S[j] \}$ 是不允许的，因为表达式 j − 1 包含的变量不是出现在前面位置的变量。
+
+```python
+A := { S [ i ] -> S [ i + 1] };
+B := { S [ i ] -> S [ j ] : j = i + 1 };
+A = B ;
+```
+
+```python
+True
+```
+
+前面一页Notation 3.49

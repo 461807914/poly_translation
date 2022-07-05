@@ -141,7 +141,7 @@ $Q[B[5] → S[B[6] → A[2, 8, 1]]]$的值向量为$(5,6,2,8,1)$
 ### 2.4.2 Wrapping and Unwrapping
 #### Example 2.72 (Wrap)
 一个二元关系R的wrap操作(简称WR)就是对R中每一对元素的的一个匿名wrap拷贝。表示如下:
-$WR = { [i → j] : i → j ∈ R }$
+$WR = \{ [i → j] : i → j ∈ R \}$
 
 在isl中该操作叫做`isl_union_map_wrap`，在iscc中，该操作写作`wrap`。
 
@@ -159,7 +159,7 @@ wrap { A [2 ,8 ,1] -> B [5]; A [2 ,8 ,1] -> B [6]; B [5] -> B [5] };
 
 #### Operation 2.74 (UnWrap)
 一个集合S的unwrap表示为$W^{-1}S$, 是一个二元关系,集合S包含了被wrap的副本的元素对，写作:
-$W^{−1}S = { i → j : ∃n : n[i → j] ∈ S }$
+$W^{−1}S = \{ i → j : ∃n : n[i → j] ∈ S \}$
 在isl，该操作写作`isl_union_set_unwrap`
 
 #### Example 2.75 
