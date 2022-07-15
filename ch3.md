@@ -383,3 +383,52 @@ Presburger公式中不允许出现左侧时变量或者时常量符号的乘法�
 
 下面的符号内容是用来处理字典序的，首先定义什么是字典序。
 
+### Definition 3.63 (Lexicographic Order)
+给定两个长度相同的向量a和b，如果a的字典序小于b的字典序，向量a与向量b中第一个不同的元素pa和pb，有 $pa < pb$。
+
+如果两个向量的长度都是N,那么使用Presburger 公式的表示形式为：
+
+$$
+\mathop{\lor}\limits_{i: 1\leq i \leq n}((\mathop{\land}\limits_{j: 1\leq i \leq i} a_j = b_j)\land a_i < b_i)
+$$
+
+### Notation 3.64
+符号$\prec / 2$表示一个在相同长度的整数序列当中的字典序小于关系。即，$a \prec b$, 这里的a和b为两个长度为n的序列，如果元素中的序列关系满足上面定义的字典序公式。
+
+### Example 3.65
+有二元关系如下
+$\{S[i_1, i_2] \rightarrow S[j_1, j_2] : i_1, i_2 \prec j_1, j_2\}$
+等价于$\{S[i_1, i_2] \rightarrow S[j_1, j_2] : i_1 < i_2 \lor (i_1 = j_1 \land i_2 < j_2 \}$
+
+*根据Notation 3.64上面左边的公式$i_1,i_2$ 是一个序列，在字典序的定义中看做一个向量*
+
+在iscc中的例子如下
+```python
+A := { S [ i1 , i2 ] -> S [ j1 , j2 ] : i1 , i2 << j1 , j2 };
+B := { S [ i1 , i2 ] -> S [ j1 , j2 ] : i1 < j1 or ( i1 = j1 and i2 < j2 ) };
+A = B ;
+```
+
+```python
+True
+```
+*上面的例子描述两个分别满足其字典序约束的两个二元关系，他们的字典序约束是等价的，那么得到的集合肯定也是等价的*
+
+### Alternative 3.66 (Extended Lexicographic Order)
+有一些作者考虑了对字典序的扩展形式，并且定义在不同长度的向量对上。通常将较短的向量与较长的向量的初始元素进行比较。如果一个向量是另一个向量的完全匹配的前缀，这样仍然会出现两个向量如何进行比较的问题。对于这样的问题，要么假设没有这样的比较方法，要么定义一些隐含的顺序。
+
+### Notation 3.67
+符号$\preccurlyeq /2$ 表示字典序在一个相同长度序列的整数上的小于或者等于关系。记$a \preccurlyeq b$等价于$a \prec b \lor a = b$
+
+*(TODO) 略过字典序大于和大于等于定义*
+
+## 3.5 Lexicographic Order
+
+前页定义 3.63 的字典顺序是在一对向量上定义的，但这个概念可以扩展到一对集合。 结果是一个二元关系，它包含来自两个集合的元素对，使得第一个在字典上小于第二个。 由于仅按字典顺序比较具有相同空间（space）的两个元素才有意义，这尤其意味着结果中的元素对具有相同的空间。
+
+### Operation 3.70 (Lexicographically-smaller-than Relation on Sets)
+字典序在两个集合A和B之间的小于关系$A \prec B$表示为一个包含元素对的二元关系, 其中一个元素来自于A另外一个来自于B，两个元素都有相同的空间并且第一个元素的字典序小于第二个。即
+
+$A \prec B \{a \rightarrow b: a \in A \land b \in B \land Sa = Sb \land Va \prec Vb \}$
+
+*Sa表示a所在的空间, Va表示值向量 见Definition 2.68和2.70*
