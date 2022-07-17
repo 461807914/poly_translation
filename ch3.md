@@ -431,4 +431,58 @@ True
 
 $A \prec B \{a \rightarrow b: a \in A \land b \in B \land Sa = Sb \land Va \prec Vb \}$
 
+在isl中，这个操作写作`isl_union_set_lex_lt_union_set`。在iscc中，这个操作写作`<<`。
+
 *Sa表示a所在的空间, Va表示值向量 见Definition 2.68和2.70*
+
+### Operation 3.71 (Lexicographically-smaller-than-or-equal Relation on Sets)
+字典序在两个集合A和B上的小于等于$A \preccurlyeq B$ 是一个包含元素对的二元关系，一个元素来自于A，领一个元素来自B，两个元素来自相同的空间，并且第一个元素字典序小于或等于第二个元素。  $A \preccurlyeq B = \{ a \rightarrow b : a \in A \land b \in B \land Sa = Sb \land Va \preccurlyeq Vb\}$
+
+*（TODO) 字典序大于和大于等于的先略过*
+
+### Example 3.74 
+下面描述不同字典序关系在集合的计算：
+
+$\{ A[i, j] : 0 ≤ i, j < 10; B[]; C[i] : 0 ≤ i < 100 \}$ 并且
+$\{ A[i, j] : 0 ≤ i, j < 20; B[] \}$
+
+```python
+A := { A [i , j ] : 0 <= i , j < 10; B []; C [ i ] : 0 <= i < 100 };
+B := { A [i , j ] : 0 <= i , j < 20; B [] };
+A << B ;
+A < <= B ;
+A >> B ;
+A > >= B ;
+```
+输出
+```python
+{ A [i , j ] -> A [ i’ , j’] : 0 <= i <= 9 and 0 <= j <= 9 and i’ > i and 0 <= i’ <= 19 and 0 <= j ’ <= 19; A [i , j ] -> A[i , j’] : 0 <= i <= 9 and 0 <= j <= 9 and j’ > j and 0 <= j’ <= 19 }
+
+{ A [i , j ] -> A [ i ’ , j ’] : 0 <= i <= 9 and 0 <= j <= 9 and i’ > i and 0 <= i’ <= 19 and 0 <= j’ <= 19; A [i , j ] -> A[i , j’] : 0 <= i <= 9 and 0 <= j <= 9 and j’ >= j and 0 <= j ’ <= 19; B [] -> B [] }
+
+{ A [i , j ] -> A [ i’ , j’] : 0 <= i <= 9 and 0 <= j <= 9 and 0 <= i’ <= 19 and i’ < i and 0 <= j’ <= 19; A [i , j ] -> A [i , j’] : 0 <= i <= 9 and 0 <= j <= 9 and 0 <= j’ <= 19 and j’ < j }
+
+{ B [] -> B []; A [i , j ] -> A [ i’ , j’] : 0 <= i <= 9 and 0 <= j <= 9 and 0 <= i’ <= 19 and i’ < i and 0 <= j’ <= 19; A [i , j ] -> A [i , j’] : 0 <= i <= 9 and 0 <= j <= 9 and 0 <= j’ <= 19 and j’ <= j }
+```
+
+同样的操作也适用于二元关系，但在这种情况下，比较是在输入关系的范围元素（range elements）上执行的，结果收集相应的域元素（domain elements）。
+
+### Operation 3.75 (Lexicographically-smaller-than Relation on Binary Relations)
+字典序在两个二元关系A和B的小于等于$A \prec B$, 是一个包含两个元素的二元关系，一个来源于A的域（domain）一个来源于B的域（domain），它们有相同的元素范围（range），使第一个元素在字典序上小于第二个。即：
+
+$A \prec B = \{a \rightarrow b: \exists c, d : a \rightarrow c \in A \land b \rightarrow d \in B \land Sc = Sd \land Vc \prec Vd \}$
+
+在isl中，这个操作叫做`isl_union_map_lex_lt_union_map`.在iscc中，该操作写为`<<`。
+
+*(TODO) 关系字典序小于等于、大于以及大于等于略过*
+
+### Example 3.79
+```python
+A := { A [i , j ] -> [i ,0 , j ] };
+B := { B [i , j ] -> [j ,1 , i ] };
+A << B ;
+```
+iscc输出为
+```python
+{ A [i , j ] -> B [i’ , j’] : j’ > i ; A [i , j ] -> B [ i’ , i ] }
+```
