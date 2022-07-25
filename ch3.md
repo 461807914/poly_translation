@@ -491,3 +491,45 @@ iscc输出为
 解释一下上面的demo, 根据上面relation 关系上字典序小于的定义得到了上面的结果，结果的集合中包含两个元素用分号分隔。
 集合中第一个元素 A[i, j] -> B[i', j']: j' > i  这里表示满足字典序小于的的关系映射为当前集合B中的元素索引为B[i', j'] -> [j', 1, i'], 而A[i, j] -> [i, 0, j] 在满足j' > i的情况下，A和B的range满足字典序小于关系。
 集合第二个元素，此时A[i, j] -> [i, 0, j]，B[i, j] -> [i, 1, i'] 此时可以看到A和B的range中，第一个值都是i, 二者相同。第二个值，A是0而B是1，此时满足字典序小于关系。
+
+
+## 3.6  Space-Local Operations
+对集合或二元关系中的每个（对）元素空间单独执行一些操作。 这种操作称为空间局部（space-local)。 一个典型的例子是词典序优化（lexicographic optimization）。 基本假设是只有同一空间（space）内的元素才能相互比较。 特别是，只有在给定的空间内，才能按字典顺序比较两个元素。 这对于具有不同维度的空间应该是清楚的，除非替代 3.66 扩展词典顺序，但它也适用于具有不同标识符或不同内部结构的空间。
+集合的空间分解根据其空间（space）划分集合中的元素。
+
+### 3.80 Space Decomposition of a Set
+给定一个集合S，其分解空间$DS$是集合$S_i$的一个唯一集合，使得所有$S_i$的并集与集合$S$相同。$S_i$中的所有元素都有相同的空间（space）并且两个不同的$S_i$和$S_j$中的元素的空间是不同的。
+即，设$\{U_i\}_i := \{U : \exist x \in S : U = Sx\}$为$S$中元素空间（space）的集合。对于每一个i，设
+$S_i : = \{x : x \in S \land Sx = U_i\}$
+那么，$DS = \{S_i\}_i$
+
+在isl中，该操作成为`isl_union_set_foreach_set`。此函数以一个集合（`isl_union_set`）和一个回调函数作为参数，回调函数会对输入集合的每个集合的空间分解进行调用。每一个这样的集合都使用`isl_set`表示，相比之下，对于一个`isl_union_set`，一个`isl_set`的所有元素都有相同的空间。该空间同样是`isl_set`的空间。事实上，每个`isl_set`，即使是一个空的集合，都拥有它自己预先定义（predetermined）的空间。
+
+### Example 3.81
+
+下面的例子展示了在元素的空间上对集合进行拆分的例子。
+
+```python
+import isl
+def print_set ( set ):
+    print set
+s = isl.union_set ( " { B [6]; A [2 ,8 ,1]; B [5] } " )
+s.foreach_set ( print_set )
+
+```
+输出为
+```python
+{ B [6]; B [5] }
+{ A [2 , 8 , 1] }
+
+```
+---
+上面的例子中,B[6]和B[5]属于同一个集合，A单独在同一个集合。而且B[6]和B[5]中拥有同样空间（都只有一个元素）
+
+### Operation 3.82 (Space Decomposition of a Binary Relation)
+给定一个二元关系R，该二元关系的空间分解为独一无二二元关系$R_i$的集合$DR$，所有$R_i$的并集与R等价，所有在给定的$R_i$中的元素对都拥有相同的元素对空间，并且在两个不同的$R_i$当中的元素对的对空间不相同。
+设$\{U_i \rightarrow V_i\}_i := \{U \rightarrow V : \exist x \rightarrow y \in R : U = Sx \land V = Sy \}$ 为在R中元素对的空间对的集合。
+对于每个i，设$R_i := \{x \land y : x \land y \in R \land Sx = U_i \land Sy = V_i\}$
+
+则$DR = \{R_i\}_i$
+
