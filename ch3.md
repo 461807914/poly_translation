@@ -532,4 +532,74 @@ s.foreach_set ( print_set )
 对于每个i，设$R_i := \{x \land y : x \land y \in R \land Sx = U_i \land Sy = V_i\}$
 
 则$DR = \{R_i\}_i$
+在isl中，该操作叫做`isl_union_map_foreach_map`。与`isl_union_set_foreach_set`类似，该函数对空间分解（space decomposition）中的每个二元关系调用回调函数，其中每个二元关系都是`isl_map`类型。与`isl_set`的例子一样，所有在`isl_map`中的元素对都由相同的对空间（pair of space）。这两个空间分别是`isl_map`的域空间（domain space）与范围空间（range space）。
+字典序优化现在可以用空间分解的形式来定义。
 
+### Operation 3.83 （Lexiographic Maximum of a Set）
+在集合S上调用字典序最大 `lexmax S`函数，得到的结果是S的一个子集，该子集包含集合S中每个空间的字典序最大元素。如果存在某一个空间没有字典序最大元素，那么该操作是未定义的。
+即，设$DS =: \{S_i\}_i$，定义 $M_i := \{x : x \in S_i \land \forall y \in S_i : Vx \succcurlyeq Vy\}$
+
+那么 $lexmax\ S = \mathop{\cup} \limits_{i} M_i$
+
+在isl中，该操作写成`isl_union_set_lexmax`。在iscc中，该操作写作`lexmax`
+
+### Example 3.84
+
+```python
+S := { B [6]; A [2 ,8 ,1]; B [5] };
+lexmax S ;
+```
+输出为
+```python
+{ B [6]; A [2 , 8 , 1] }
+```
+
+注意，如果描述的集合包含常量符号（constant symbols），那么字典序最大的结果会因为不同的常量符号而定。
+
+### Example 3.85
+
+```python
+S := [ n ] -> { A [i , j ] : i , j >= 0 and i + j <= n };
+lexmax S ;
+```
+输出为
+```python
+[ n ] -> { A [n , 0] : n >= 0 }
+```
+
+### Example 3.86
+下面的集合没有字典序最大值
+
+$\{S[i] : i ≥ 0\}$
+
+
+bla bla
+
+*TODO(略过字典序最小)*
+
+### Operation 3.89 (Lexiographic Maximum of a Binary Relation)
+在一个二元关系R中的字典序最大`lexmax R`的结果是一个R的子集，包含的元素对应于R中元素对中每个第一个元素和对应的第二个元素的每个空间，这些对应元素的字典序最大值。如果存在第一个元素及空间没有对应字典序最大的第二个元素，那么该操作就是未定义的。
+
+设$DR =: \{R_i\}_i$
+
+定义$M_i : = \{ x \rightarrow y : x \rightarrow y \in R_i \land \forall x' \rightarrow z \in R_i : x = x' \Rightarrow Vy \succcurlyeq Vz\}$
+
+$lexmax\ R = \mathop{\cup} \limits_{i} M_i$
+
+在isl中，该操作为`isl_union_map_lexmax`，在iscc中写作`lexmax`
+
+----
+*上面的那个双箭头是表示什么意思? 猜测应该是推断的意思*
+
+
+### Example 3.90
+
+```python
+R := { A [2 ,8 ,1] -> B [5]; A [2 ,8 ,1] -> B [6]; B [5] -> B [5] };
+lexmax R ;
+```
+输出结果为
+
+```python
+{ A [2 , 8 , 1] -> B [6]; B [5] -> B [5] }
+```
