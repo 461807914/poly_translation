@@ -680,3 +680,88 @@ print S ;
 
 ---
 经过合并后的集合更加简洁
+
+## 3.8 Sampling and Scanning
+
+当一个集合被隐式的（intensionally）描述，这种描述不会明显的得出集合是否为空的结论。Operation 3.31中的操作可以用来检查是否为空，但是在一些实例当中，获取集合中元素的显示（explicit）描述可能会很有用。在一些例子当中，下面的操作可能会被用到。
+
+### Operation3.97 (Sampling a Set)
+
+对一个非空集合S采样（Sampling）确定了集合S实际上使一个常量符号值序列，且集合S非空并且返回一个单例集合（singleton set）S0，该集合为这些常量符号所对应的集合S的子集。
+
+在`isl`中，这个操作叫做`isl_union_set_sample_point`。在iscc当中，该操作写作`sample`。函数`isl_union_set_sample_point`返回一个`isl_point`类型的对象，该对象使`isl_set`的一个子类。每个`isl_point`对象类型要么是空的（对应于一个空集）要么包含一个对应于一个特定常量符号值的单独的元素。
+
+### Exammple 3.98
+
+```python
+sample [ n ] -> { A [x , y ] : 0 < x < y < n };
+```
+输出为
+
+```python
+[ n ] -> { A [1 , 2] : n = 3 }
+```
+
+### Example 3.99
+
+```python
+import isl
+s = isl.union_set ( " [ n ] -> { A [x , y ] : 0 < x < y < n } " )
+print s.sample_point ()
+```
+输出为:
+
+```python
+[ n = 3] -> { A [3 , 1] }
+```
+
+可以使用以下操作获得集合中所有元素的显式描述。 这当然假设对于常数符号的所有值来说它们的数量是有限的。
+
+### Operation 3.100 (Scanning a Set)
+
+给定一个集合 S，对于有限数量的常数符号值是非空的，而且对于每个常数符号值具有有限数量的元素，扫描（Scanning）该集合会返回对所有这些元素的显式描述 常量符号的所有这些值。
+
+在`isl`当中，该操作叫做`isl_union_set_foreach_point`。在iscc当中用`scan`操作打印一个显示表示的完整集合。函数`isl_union_set_foreach_point`以一个回调函数作为参数，并且会每个常量符号的值以及每个集合中的元素作为该回调函数的参数进行调用。注意，该操作取决于集合已知的（aware of）的常量符号。
+
+即，集合$\{ [x] : 0 <= x <= 10 \}$与集合$[n] -> \{ [x] : 0 <= x <= 10 \}$ 是互相等价的，但是只有前面的描述能够被扫描，因为第二个描述当中对于常量符号n会有无限多的元素值在集合当中。
+
+### Example 3.101
+
+```python
+import isl
+def print_point( point ):
+    print point
+s = isl.union_set ( " { A [ x ] : exists a : x < 3 a < 2 x < 20 } " )
+s.foreach_point( print_point )
+```
+输出为：
+```python
+{ A [9] }
+{ A [6] }
+{ A [7] }
+{ A [4] }
+{ A [8] }
+{ A [5] }
+{ A [2] }
+```
+
+## 3.9  Beyond Presburger Formulas
+
+在集合描述中只允许 Presburger 公式的主要原因是 Presburger 公式是可判定的(decidable)。也就是说，对于任何封闭的 Presburger 公式（没有常数符号），都可以判断该公式是否满足。这尤其意味着可以通过在集合描述中的公式中对集合变量进行存在量化（existentially quantifying）来检查 Presburger 集合是否为空。 在这个过程中，常数符号可以被视为变量，也可以被量化。如果一个集合对于常量符号的每个值都是空的，如operation 3.31所示，则该集合看作是空集。由于这种可判定行，目前为止描述的所有操作都可以准确执行。
+
+当用于描述属于集合元素的语言扩展到Presburger语言之外的时候，会导致可判定行的丧失，即某些操作不能精确执行。
+
+考虑一些拓展：
+
+**乘法（multiplication）**
+
+允许使用乘法意味着约束条件当中带有多项式，一些处理多项式的技术会考虑如何处理这些特殊情况，并结合集合当中仅包含整数的场景。其它的技术考虑的问题包括有理数甚至是实数的问题，这意味着即使集合不包含任何整数值，该集合仍然被看作是非空的集合。
+
+**无解释的函数符号（uninterpreted function symbols）**
+
+常量符号，即零元（arity zero)的函数符号，已经是第43页Definition 3.12的 Presburger 语言的一部分。
+一些扩展允许函数符号带有任意元数（arity 可以理解成函数参数），但是通常由一些限制。就像常量符号的特殊情况一样，这些函数符号是未解释的，因为这些函数符号没有预先定义的解释。
+
+
+---
+Note部分的内容略过
