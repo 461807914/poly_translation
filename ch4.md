@@ -114,3 +114,52 @@ print (aff)
 $S_i$的空间和$E_i$的域空间（domain space）需要相同。同样，所有$E_i$的范围空间（range space）也要相同。此外，$S_i$需要成对不相交（pairwise disjoint）。
 分段表达式的域空间和范围空间与$E_i$相同。分段表达式的域空间是$S_i$的域空间的并集。分段表达式在一个整数元组$x$中的值是某些i对应的$E_i(x) \ if x \in S_i$
 否则，值属于未定义。
+
+该构造函数可以再次用于生成新类型。
+
+### Definition 4.11 (Piecewise Quasi-Affine Expression)
+
+一个分段拟仿射表达式的结果是将Definition 4.10施加到拟仿射表达式上。
+在`isl`中，一个分段拟仿射表达式表示为`isl_pw_aff`。
+
+### Notation 4.12 (Piecewise Quasi-Affine Expression)
+
+`isl`，分段拟仿射表达式写作一个带有条件的拟仿射表达式序列，这些表达式使用分号分隔并且用一个大括号包围。
+每个带有条件的拟仿射表达式包含了Notation 4.2中的解释的分段拟仿射表达式$E_i$（没有大括号）,并且用一个冒号来约束表示的空间$S_i$。
+
+### Example 4.13 
+
+一个分段拟仿射表达式的例子。
+$\{f[x] != [x + 1] : 0 ≤ x < n - 1; [x] != [0] : x = n - 1 \}$
+
+---
+(TODO) 来个demo
+
+
+### Definition 4.14 (Piecewise Tuple of Quasi-Affine Expressions)
+
+一个分段元组拟仿射表达式就是将definition 4.10应用到拟仿射表达式上。在`isl`中，一个分段元组的拟仿射表达式表示为`isl_pw_multi_aff`
+
+### Alternative 4.15 (Quasts)
+
+*这单词啥意思？从下的定义来看，好像是个数据结构？*
+
+准仿射选择树（quasi-affine selection tree），也称为 quast，形成了准仿射表达式的分段元组的替代表示。准仿射节树是具有作为叶子的准仿射表达式或$\bot$ 元组和作为内部节点的准仿射表达式的树。每个内部节点都有两个子节点，如果节点中的准仿射表达式是非负的，则表示为第一个孩子，如果表达式为负，则应表示为另外一个孩子节点。准仿射节树的值是在评估输入的内部节点时达到的准仿射表达式元组的值。如果该过程在$\bot$处种植，那么该值是未定义的。
+
+*reach-def 分析？没太看明白这部分的表述*
+
+### Notation 4.16 (Piecewise Tuple of Quasi-Affine Expressions)
+
+在`isl`中，一个拟仿射表达式的分段元组表示成一个带有条件的拟仿射表达式元素序列，使用分号分隔并用大括号包围。每个拟仿射表达式的条件元组由Notation 4.6组成（不带大括号），对于每个拟仿射表达式$E_i$的元组，后面跟着一个冒号以及一个约束条件$S_i$。
+
+每个分段表达式都由一个给定的作用域空间和一个范围空间。以下构造函数允许它们在多个空间中组合。
+
+### Definition 4.17 （Multi-Space Expression)
+
+多空间表达式将具有不同域和/或范围空间的分段表达式组合成一个表达式。多空间表达式没有特定的域或范围空间，即使所有组成分段表达式碰巧具有相同的域或范围空间。多空间表达式的域是组合分段表达式的域的并集。整数元组 x 处的多空间表达式的值是 x 处的分段表达式的值，该表达式在其域中包含 x，如果有的话。
+
+### Definition 4.18 (Multi-Space Piecewise Quasi-Affine Expression)
+
+一个多空间分段拟仿射表达式是将Definition 4.17应用于分段拟仿射表达式的结果。
+
+在`isl`中，多空间分段拟仿射表达式的表示为`isl_union_pw_aff`
