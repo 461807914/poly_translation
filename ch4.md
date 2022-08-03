@@ -163,3 +163,48 @@ $\{f[x] != [x + 1] : 0 ≤ x < n - 1; [x] != [0] : x = n - 1 \}$
 一个多空间分段拟仿射表达式是将Definition 4.17应用于分段拟仿射表达式的结果。
 
 在`isl`中，多空间分段拟仿射表达式的表示为`isl_union_pw_aff`
+
+
+### Definitino 4.19 (Multi-Space Piecewise Quasi-Affine Expression)
+
+多空间分段拟仿射表达式的编写方式与分段拟仿射表达式相同（参Notation 4.12）。 唯一的区别是域可能有不同的空间。
+
+### Definition 4.20 (Multi-Space Piecewise Tuple of Quasi-Affine Expressions)
+
+拟仿射表达式的多空间分段元组是将Definition 4.17 应用于准仿射表达式的分段元组的结果。
+
+在`isl`中拟仿射表达式的多空间分段元组表示为`isl_union_pw_multi_aff`。
+
+### Notation 4.21 (Multi-Space Piecewise Tuple of Quasi-Affine Expressions)
+
+一个拟仿射表达式的多空间分段元组的表示方法与拟仿射表达式的分段元组相同（见Notation 4.16）。唯一的不同域和元组可能有不同的空间。
+
+元组也可以通过分段表达式或者多空间表达式构造。
+
+### Definition 4.22 (Tuple of Piecewise Quasi-Affine Expressions)
+
+一个分段拟仿射表达式元组即将definition 4.4应用到分段拟仿射表达式上。
+
+在`isl`中，一个分段拟仿射表达式元组的表示方法为`isl_multi_pw_aff`。
+
+### Notation 4.23 (Tuple of Piecewise Quasi-Affine Expressions)
+
+在`isl`中，分段拟仿射表达式元组的编写方式与Notation 4.6 中的拟仿射表达式元组相同，除了每个拟仿射表达式可以用分号分隔的拟仿射表达式，冒号和相应集合的约束。每个这样的序列都需要用括号括起来，以防止用于分隔序列的逗号被视为约束内的分隔表达式。
+
+尽管拟仿射表达式的分段元组和分段拟仿射表达式的元组非常相似，但它们的处理方式略有不同，因为第一个是分段表达式，而第二个是元组。
+两个表达式的类型可以表达的内容也有所不同。在一个分段拟仿射表达式元组当中，每个元素是一个分段拟仿射表达式，而且可以在域空间的不同部分中不去定义。
+
+在拟仿射表达式的分段元组当中，整个元组在域空间中的任何特定点要么是定义的，要么是未定义的。
+
+---
+*这里注意区分两个概念*
+
+一个是分段拟仿射表达式元组（tuple of piecewise quasi-affine expressions），另一个是拟仿射表达式的分段元组（piecewise tuple of quasi-affine expressions）。
+
+### Example 4.24
+
+下面的分段拟仿射表达式元组**不能**被表示成一个拟仿射表达式的分段元组。
+
+$\{[i] \rightarrow [(i : i ≥ 0); (i - 1 : i ≥ 1)] \}$
+
+第一个分段拟仿射表达式有域$\{[i] : i ≥ 0 \}$，但是第二个的域是$\{[i] : i ≥ 1\}$
