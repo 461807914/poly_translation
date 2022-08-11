@@ -208,3 +208,40 @@ $\{f[x] != [x + 1] : 0 ≤ x < n - 1; [x] != [0] : x = n - 1 \}$
 $\{[i] \rightarrow [(i : i ≥ 0); (i - 1 : i ≥ 1)] \}$
 
 第一个分段拟仿射表达式有域$\{[i] : i ≥ 0 \}$，但是第二个的域是$\{[i] : i ≥ 1\}$
+
+### Example 4.25
+下面代码将拟仿射表达式的分段元组转换成一个分段拟仿射表达式元组，而且不会有信息损失。
+
+```python
+import isl
+a = isl.pw_multi_aff( " { [ i ] -> [i , i - 1] : i - 1 >= 0 } " ) # 拟仿射表达式分段元组
+print a
+a = isl.multi_pw_aff( a ) # 分段拟仿射表达式元组
+print a
+```
+
+结果为
+
+```python
+{ [ i ] -> [( i ) , ( -1 + i ) ] : i > 0 }
+{ [ i ] -> [(( i ) : i > 0) , (( -1 + i ) : i > 0) ] }
+```
+
+### Definition 4.26 (Tuple of Multi-Space Piecewise Quasi-Affine Expressions)
+在`isl`中一个多空间分段拟仿射表达式元组通过Notation 4.21中的多空间分段拟仿射表达式符号，写成一个带有参数的结构化命名整数元组模板，其常量符号在结构化命名整数元组模板的外侧。
+
+### Example 4.28
+下面的代码展示一个多空间分段拟仿射表达式元组。
+
+```python
+import isl
+a = isl.multi_union_pw_aff(" [ n ] -> A [{ S1 [] -> [ n ]; S2 [i , j ] -> [ i ] } , "
+                           " { S1 [] -> [0]; S2 [i , j ] -> [ j ] }] " )
+print a
+```
+
+输出结果为
+
+```python
+[ n ] -> A [{ S2 [i , j ] -> [( i ) ]; S1 [] -> [( n ) ] } , { S2 [i , j ] -> [( j ) ]; S1 [] -> [(0) ] }]
+```
