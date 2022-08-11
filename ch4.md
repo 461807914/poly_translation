@@ -24,6 +24,7 @@ print (aff)
 ```python
 { A[x, y, z] -> [(2x + 2y)/3] }
 ```
+---
 根据上面的定义，aff的输入是一个命名的整数元组，输出是一个匿名的一维空间，所以标识符B没了
 
 
@@ -138,7 +139,7 @@ $\{f[x] != [x + 1] : 0 ≤ x < n - 1; [x] != [0] : x = n - 1 \}$
 
 ### Definition 4.14 (Piecewise Tuple of Quasi-Affine Expressions)
 
-一个分段元组拟仿射表达式就是将definition 4.10应用到拟仿射表达式上。在`isl`中，一个分段元组的拟仿射表达式表示为`isl_pw_multi_aff`
+一个拟仿射表达式的分段元组就是将definition 4.10应用到拟仿射表达式上。在`isl`中，一个拟仿射表达式的分段元组表示为`isl_pw_multi_aff`
 
 ### Alternative 4.15 (Quasts)
 
@@ -245,3 +246,32 @@ print a
 ```python
 [ n ] -> A [{ S2 [i , j ] -> [( i ) ]; S1 [] -> [( n ) ] } , { S2 [i , j ] -> [( j ) ]; S1 [] -> [(0) ] }]
 ```
+
+---
+从API使用的角度，总结一下上面的内容，并添加几个例子
+关于仿射表达式的形式一共出现了如下几种：
+
+- `isl_aff`
+- `isl_multi_aff`
+- `isl_pw_aff`
+- `isl_pw_multi_aff`
+- `isl_union_pw_aff`
+- `isl_union_pw_multi_aff`
+- `isl_multi_pw_aff`
+
+在概念上，有如下几种：
+- 拟仿射表达式(Quasi-Affine Expression), 对应的API为 `isl_aff`
+- 拟仿射表达式元组(Tuple of Quasi-Affine Expressions)，对应的API为 `isl_multi_aff`
+- 分段拟仿射表达式(Piecewise Quasi-Affine Expression)，对应的API为 `isl_pw_aff`
+- 拟仿射表达式的分段元组(Piecewise Tuple of Quasi-Affine Expressions)，对应的API为 `isl_pw_multi_aff`
+- 多空间分段拟仿射表达式(Multi-Space Piecewise Quasi-Affine Expression)，对应的API为 `isl_union_pw_aff`
+- 拟仿射表达式的多空间分段元组(Multi-Space Piecewise Tuple of Quasi-Affine Expressions)，对应的API为 `isl_union_pw_multi_aff`
+- 分段拟仿射表达式元组(Tuple of Piecewise Quasi-Affine Expressions)，对应的API为 `isl_multi_pw_aff`
+
+`isl_aff` 表示一个映射，映射的"key"是一个整数元组，范围称为 domain space，维数可以是多维; 映射的"value"是一个一维的整数元组（就是元组里面只有一个维度），范围称为range space，维数固定为1。
+
+拟仿射表达式的元组需要用到定义4.4 关于表达式元组的描述，顾名思义，表达式元组就是有一个元组，里面有很多个表达式，按照定义中的要求，元组中的所有表达式的domain space需要相同。形式有两种：
+
+第一种是$n[e_0, e_1,...,e_{d-1}]$，表示元组的名称为n，有d个相同domain space 的表达式。
+第二种是$n[e \rightarrow f]$, 同样n表示元组的名称，e和f分别是两个表达式元组。 （个人理解，e和f如果是表达式元组，那么可以是第一种形式，也可以是第二种形式。另外，该模式的元组是否要求e和f有相同的domain space呢？)
+
