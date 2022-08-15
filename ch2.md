@@ -24,11 +24,11 @@
 ### 2.2.1 Basic Operations
 最基本的操作是交集、并集和集差。
 
-#### Operation 2.5 (Intersection of Sets)
+### Operation 2.5 (Intersection of Sets)
 两个集合 A 和 B 的交集 `A ∩ B` 包含同时包含在 A 和 B 中的元素。
 在 isl 中，此操作称为`isl_union_set_intersect`。在 iscc 中，这操作写成`*`。
 
-#### Example 2.6 
+### Example 2.6 
 iscc input
 ```python
 { B [0]; A [2 ,8 ,1] } * { A [2 ,8 ,1]; C [5] };
@@ -38,13 +38,13 @@ iscc output
 { A [2 , 8 , 1] }
 ```
 
-#### Example 2.7  
+### Example 2.7  
 使用 python 接口可以获得与示例 2.6 相同的结果，如下所示。
 ```python
 import isl
-s1 = isl . union_set ( " { B [0]; A [2 ,8 ,1] } " )
-s2 = isl . union_set ( " { A [2 ,8 ,1]; C [5] } " )
-print s1 . intersect ( s2 )
+s1 = isl.union_set ( " { B [0]; A [2 ,8 ,1] } " )
+s2 = isl.union_set ( " { A [2 ,8 ,1]; C [5] } " )
+print s1.intersect ( s2 )
 
 ```
 输出为：
@@ -52,11 +52,11 @@ print s1 . intersect ( s2 )
 { A [2 , 8 , 1] }
 ```
 
-#### Operation 2.8 (Union of Sets)
+### Operation 2.8 (Union of Sets)
 两个集合 A 和 B 的并集 `A∪` 包含 A 或 B 中包含的元素。
 在isl，这个操作可以调用`isl_union_set_union`。在iscc中，该操作写作`+`。
 
-#### Example 2.9
+### Example 2.9
 ```python
 { B [0]; A [2 ,8 ,1] } + { A [2 ,8 ,1]; C [5] };
 ```
@@ -66,12 +66,12 @@ print s1 . intersect ( s2 )
 ```
 请注意，由于集合中的元素没有定义顺序，因此union中的元素可能会以不同的顺序打印在屏幕上。
 
-#### 2.10 （Set Difference)
+### 2.10 （Set Difference)
 两个集合 A 和 B 的差 `A \ B` 包含 A 中包含但 B 中不包含的元素。
 在isl中，该操作调用`isl_union_set_substrace`。在iscc中，该操作写为`-`。
 
 
-#### 2.11
+### 2.11
 iscc的输入为
 ```python
 { B [0]; A [2 ,8 ,1] } - { A [2 ,8 ,1]; C [5] };
@@ -83,8 +83,121 @@ iscc的输出为
 
 ### 2.2.2 Comparisons
 
-bla bla bla
-先掠过部分章节----
+集合上最基本的运算时集合相等的运算判断。
+
+### 2.12 (Equality of Sets)
+两个集合$A$和$B$相同(A = B)，如果两个集合包含相同的元素。
+在`isl`中，该操作写作`isl_union_set_is_equal`。在`iscc`中，该操作使用符号`=`。见Operation 3.26。
+
+### Example 2.13 
+```python
+{ []; A[2 ,8 ,1] } = { A[2 ,8 ,1]; []; [] };
+```
+输出结果为
+```python
+True
+```
+
+### Example 2.14
+使用python的接口如下
+```python
+import isl
+s1 = isl.union_set ("{ []; A[2 ,8 ,1] }")
+s2 = isl.union_set ("{ A[2 ,8 ,1]; []; [] }")
+print s1.is_equal (s2)
+```
+输出为:
+
+```python
+True
+```
+
+判断集合是否为空
+
+### Operation 2.15 (Emptiness of a Set)
+集合为空的条件时不包含任何元素。
+在`isl`中使用`isl_union_set_is_empty`表示。
+
+### Example 2.16
+bla bla
+
+### Operation 2.17 (Subset)
+bla bla
+
+### Example 2.18
+bla bla
+
+### Operation 2.19 (Strict Subset)
+bla bla
+
+### Example 2.20
+bla bla
+
+### Operation 2.21 (Superset)
+bla bla
+
+### Operation 2.22 (Strict Superset)
+bla bla
+
+## 2.3 Binary Relations
+二元关系时一个集合，集合中包含了一堆命名整数元组对。
+
+### Notation 2.23 (Pair of Elements)
+在`isl`中，两个命名的整数元组在每一对二元关系中使用`->`分隔。
+
+注意该符号并不意味着第一个元组和第二个元组之间存在一个函数依赖的关系。也就是说，某第一个元组会出现在多个数对中，该数对中的第二个元组各不相同。
+事实上，一个二元关系可以看成时一个图上的边。这个图里面可能会有环（loops），但是没有重边（parallel edge，应该翻译成multiple edges）。
+
+### Example 2.24
+```python
+{ A[2; 8; 1] -> B[5]; A[2; 8; 1] -> B[6]; B[5] -> B[5]}
+```
+在`isl`当中，这样的二元关系表示成`isl_union_map`。空的二元关系使用`{}`表示或者$\phi$表示，在`iscc`中使用`{}`表示。在`isl`中，一个空的二元关系使用`isl_union_map_empty`。
+注意，尽管二元关系本质上以元组对的集合，但是在`isl`当中集合与二元关系存在严格的界限。即，集合只能包含元组（没有元组对），二元关系只能包含元组对（不能包含元组本身）。
+
+### Alternative 2.25 (Encoding Binary Relations)
+bla bla
+
+### 2.31 Basic Operations
+因为二元关系本质上是元组对的集合，在集合上可以进行的操作同样可以在二元关系上使用。二元关系允许一个取逆（inverse）和一个组合（composition）操作。
+
+### Operation 2.26 (Intersection of Binary Relations)
+两个二元关系A和B的交集$A \cap B$的结果是既包含在集合A中且包含在集合B中的元组对。
+在`isl`中该操作为`isl_union_map_intersect`，在`iscc`中，该操作使用`*`表示。
+
+### Exmaple 2.27
+```python
+{ A[2 ,8 ,1] -> B [5]; B[5] -> B[5] } * { A[2 ,8 ,1] -> B [6]; B[5] -> B[5] };
+```
+输出为
+```python
+{ B[5] -> B[5] }
+```
+
+### Operation 2.28 (Union of Binary Relations)
+二元关系集合A和B的并集$A \cup B$的结果为包含在A或者包含在B中的元组对。
+在`isl`中，该操作写作`isl_union_map_union`，在`iscc`中，该操作写作`+`。
+
+### Operation 2.29 (Binary relation Difference)
+bla bla
+
+### Operation 2.30 (Inverse of a Binary Relation)
+对一个二元关系R取逆的操作$R^{-1}$是将包含在二元关系R中的元组的映射顺序调转。
+
+$R^{-1} = \{j -> i : i -> j \in R \}$
+
+在`isl`中该操作记为`isl_union_map_reverse`。在`iscc`中，该操作记作`^-1`
+
+### Example 2.31
+bla bla
+
+### Operation 2.32 (Composition of Binary Relations)
+两个二元关系A和B的组合$B \circ A$的结果为二元关系的第一个元素来自于A，第二个元组来自于B。
+
+$B \circ A = \{i -> j : \exist k : i -> k \in A \land k -> j \in B\}$
+在`isl`中，该操作写作`isl_union_map_apply_range`，参数为A和B。在`iscc`中，该操作写作`before`或者`.`，参数为A和B;或者调转擦拭你，使用`after`或者`()`表示，比如$B(A)$。
+
+### Example 2.33
 
 
 
@@ -94,7 +207,7 @@ bla bla bla
 
 
 ### 2.4.1 Structured Named Integer Tuples
-#### Definition 2.66 (Structured Named Integer Tuple)
+### Definition 2.66 (Structured Named Integer Tuple)
 一个结构化命名元组只能表示成如下两种形式：
 
 1. 一个命名整数元组表示为，一个标识符n，带有一个整数$i_j$满足$0≤j＜d$，且$d≥0$，写作$n[i_0, i_1,...,i_{d-1}]$
@@ -102,50 +215,50 @@ bla bla bla
 
 *就是对Named Integer Tuple进行一次抽象，Named Integer Tuple中的内容也可以是Named Integer Tuple*
 
-#### Example 2.67 
+### Example 2.67 
 下面的例子就是结构化命名整数元组的集合:
 ```python
-{ B[5]; S[B[6] → A[2, 8, 1]]; Q[B[5] → S[B[6] → A[2, 8, 1]]] }
+{ B[5]; S[B[6] -> A[2, 8, 1]]; Q[B[5] -> S[B[6] -> A[2, 8, 1]]] }
 ```
 下面的例子是使用结构化命名整数元组的二元关系：
 ```python
-{ B[5] → A[2, 8, 1]; S[B[6] → A[2, 8, 1]] → B[5] }
+{ B[5] -> A[2, 8, 1]; S[B[6] -> A[2, 8, 1]] -> B[5] }
 ```
 
-从这一点开始，集合将被认为包含结构化命名整数元组，而不仅仅是命名整数元组，并且二进制关系将被认为包含结构化命名整数元组对。 事实上，命名整数元组的概念本身将被认为还包括结构化命名整数元组。 但是，和以前一样，集合不能包含一对元组，二元关系不能包含单个元组。
+从这一点开始，集合将被认为包含结构化命名整数元组，而不仅仅是命名整数元组，并且二元关系将被认为包含结构化命名整数元组对。 事实上，命名整数元组的概念本身将被认为还包括结构化命名整数元组。 但是，和以前一样，集合不能包含一对元组，二元关系不能包含单个元组。
 放在一起考虑共享相同结构 和(或)标识符的元素组会很方便。 为此，定义了以下概念。
 
-#### Definition 2.68 (Space)
+### Definition 2.68 (Space)
 结构化命名整数元组$i$的空间（Space)$S_i$定义如下：
 
 1. n/d，如果$i$的形式为$n[i_0,i_1,...,i_{d_1}]$，一个标识符n以及一个非负整数d
 2. $(n, S(j), S(k)),如果i的形式是$n[j->k]$，其中n是一个标识符，并且j和k分别为结构化命名整数元组。
 
 一对结构化命名整数元组$i->j$的空间为$(S(i), S(j))$
-#### Example 2.69
-元组$Q[B[5] → S[B[6] → A[2, 8, 1]]]$的空间为：
+### Example 2.69
+元组$Q[B[5] -> S[B[6] -> A[2, 8, 1]]]$的空间为：
 $(Q, B/1, (S, B/1, A/3))$
 
 同样，整数值可以从结构化命名整数元组当中提取出来。
-*B/1应该表示集合B中有一个元素，我猜的*
+*B/1应该表示集合B中有一个元素*
 
-#### Definition 2.70 (Value Vector)
+### Definition 2.70 (Value Vector)
 值向量$V_i$的结构化命名整数元组$i$的表示形式如下两种：
 1. (i_0,i_1,...,i_{d-1})，如果$i$的形式是$n[i_0,i_1,...,i_{d-1}]$, n是标识符且d是一个非负整数
 2. $V(j)||V(k)$，$||$表示连接两个向量，如果$i$的形式$n[j->k]$，其中n是一个标识符，且j和k是结构化命名整数元组。结构化命名整数元组对的值向量$i->j$的表示为$V(i)||V(j)$。
 
 
-#### Example 2.71
-$Q[B[5] → S[B[6] → A[2, 8, 1]]]$的值向量为$(5,6,2,8,1)$
+### Example 2.71
+$Q[B[5] -> S[B[6] -> A[2, 8, 1]]]$的值向量为$(5,6,2,8,1)$
 
 ### 2.4.2 Wrapping and Unwrapping
-#### Example 2.72 (Wrap)
+### Example 2.72 (Wrap)
 一个二元关系R的wrap操作(简称WR)就是对R中每一对元素的的一个匿名wrap拷贝。表示如下:
-$WR = \{ [i → j] : i → j ∈ R \}$
+$WR = \{ [i → j] : i -> j \in R \}$
 
 在isl中该操作叫做`isl_union_map_wrap`，在iscc中，该操作写作`wrap`。
 
-#### Example 2.73
+### Example 2.73
 
 输入为：
 ```python
@@ -157,16 +270,15 @@ wrap { A [2 ,8 ,1] -> B [5]; A [2 ,8 ,1] -> B [6]; B [5] -> B [5] };
 ```
 *就是给所有元素都套上一个[]*
 
-#### Operation 2.74 (UnWrap)
+### Operation 2.74 (UnWrap)
 一个集合S的unwrap表示为$W^{-1}S$, 是一个二元关系,集合S包含了被wrap的副本的元素对，写作:
-$W^{−1}S = \{ i → j : ∃n : n[i → j] ∈ S \}$
+$W^{−1}S = \{ i -> j : \exist n : n[i -> j] \in S \}$
 在isl，该操作写作`isl_union_set_unwrap`
 
-#### Example 2.75 
+### Example 2.75 
 iscc输入为
 ```python
-S := { B [5]; S [ B [6] -> A [2 , 8 , 1]];
-       Q [ B [5] -> S [ B [6] -> A [2 , 8 , 1]]] };
+S := { B [5]; S [ B [6] -> A [2 , 8 , 1]]; Q [ B [5] -> S [ B [6] -> A [2 , 8 , 1]]] };
 unwrap S ;
 ```
 iscc输出为
@@ -176,7 +288,7 @@ iscc输出为
 
 当R为是一个二元关系，如果有$W^{-1}WR$,那么结果与$R$相同。但是当S是一个集合，如果对S操作$WW^{-1}S$，结果不一定是$S$。比如，当S中包含的元素没有被wrapped元素对，那么这些元素会被从集合中去掉。此外，如果任意的被wrapped的元素对有一个标识符(identifier),那么这个标识符也会被去掉。
 
-#### Example 2.76 
+### Example 2.76 
 iscc输入为：
 ```python
 S := { B [5]; S [ B [6] -> A [2 , 8 , 1]];
@@ -192,14 +304,14 @@ iscc输出为：
 ### 2.4.3 Products
 两个集合（或二元关系）的乘积是将其参数中的元组组合成wrapped关系的集合（或二元关系）。 在二元关系的情况下，也可以只组合域(domain)或范围(range)。
 
-#### Operation 2.77 (Set Product)
+### Operation 2.77 (Set Product)
 集合A和B的乘积$A×B$的表示是一个集合，该集合当中包含包含一堆wrapped的元素对，这些元素对的第一个元素来自A，第二个元素来自B。那么，两个集合的乘积就是两个集合一般关系之间的wrap。如下:
 $A × B = W(A → B) = { [i → j] : i ∈ A ∧ j ∈ B }$
 
 在isl中，该操作的函数为`isl_union_set_product`。在iscc中，该操作写为`cross`。
 
 
-#### Exmaple 2.78 
+### Exmaple 2.78 
 对比23页的例子2.48，iscc的代码如下：
 ```python
 S := { A [2 ,8 ,1]; B [5] };
@@ -211,10 +323,10 @@ S cross T ;
 { [ A [2 , 8 , 1] -> A [2 , 8 , 1]]; [ A [2 , 8 , 1] -> B [6]]; [ B [5] ->  A [2 , 8 , 1]]; [ B [5] -> B [6]] }
 ```
 
-#### Operator 2.79 (Binary Relation Product)
+### Operator 2.79 (Binary Relation Product)
 二元关系A和B的乘积$A×B$的表示是一个二元关系，该二元关系当中包含包含一堆wrapped的元素对，这些元素对的第一个元素来自A，第二个元素来自B。
 表示为：
-$A × B = { [i → m] → [j → n] : i → j ∈ A ∧ m → n ∈ B }$
+$A × B = { [i -> m] -> [j -> n] : i -> j \in A \land m -> n \in B }$
 在isl当中，该操作记为：`isl_union_map_product`。在iscc中，该操作写作`cross`。
 如下面图2.4所示
 ![Figure_2.4](./2.4.png)
@@ -227,13 +339,13 @@ bla bla
 ### 2.4.4 Domain and Range Projection
 下面的操作以一个二元关系作为输入，并且产生一个新的二元关系，这个二元关系将输入的wrapped副本投影（projects)到其域（domain)或范围(range)。
 
-#### Operation 2.100 (Domain Projection)
+### Operation 2.100 (Domain Projection)
 一个二元关系$R$的domain projection $\xrightarrow{dom}R$也是一个二元关系，该关系为R中的每对元素，经过domain project后得到的结果为一个R中wrapped元素对并指向这个元素对的第一个元素。如下：
-$\xrightarrow{dom}R = { [i → j] → i : i → j ∈ R }$
+$\xrightarrow{dom}R = { [i -> j] -> i : i -> j \in R }$
 
 在isl中，该操作记为`isl_union_map_domain_map`，也可以参考4.2节的Creation。在iscc中，该操作写为`domain_map`。
 
-#### Example 2.101 
+### Example 2.101 
 iscc的输入为：
 ```python
 R := { A [2 ,8 ,1] -> B [5]; A [2 ,8 ,1] -> B [6]; B [5] -> B [5] };
@@ -244,14 +356,14 @@ iscc的结果为：
 { [ A [2 , 8 , 1] -> B [6]] -> A [2 , 8 , 1]; [ A [2 , 8 , 1] -> B [5]] -> A [2 , 8 , 1]; [ B [5] -> B [5]] -> B [5] }
 ```
 
-#### Operation 2.102 (Range Projection)
+### Operation 2.102 (Range Projection)
 一个二元关系$R$的range projection $\xrightarrow{ran}R$也是一个二元关系，该关系为R中的每对元素，经过range project后得到的结果为一个R中wrapped元素对并指向这个元素对的第二个元素。
 如下：
 $\xrightarrow{ran}R = { [i → j] → j : i → j ∈ R }$
 
 在isl中，该操作为表示为`isl_union_map_range_map`。在iscc中，这个操作为`range_map`。
 
-#### Example 2.103
+### Example 2.103
 iscc的输入：
 ```python
 R := { A [2 ,8 ,1] -> B [5]; A [2 ,8 ,1] -> B [6]; B [5] -> B [5] };
