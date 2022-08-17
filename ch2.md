@@ -198,8 +198,103 @@ $B \circ A = \{i -> j : \exist k : i -> k \in A \land k -> j \in B\}$
 在`isl`中，该操作写作`isl_union_map_apply_range`，参数为A和B。在`iscc`中，该操作写作`before`或者`.`，参数为A和B;或者调转擦拭你，使用`after`或者`()`表示，比如$B(A)$。
 
 ### Example 2.33
+考虑如下关系
+$A = \{ B[6] -> A[2; 8; 1]; B[6] -> B[5] \}$
 
+$B = \{ A[2; 8; 1] -> B[5]; A[2; 8; 1] -> B[6]; B[5] -> B[5] \}$
+那么
 
+$B \circ A = \{ B[6] -> B[6]; B[6] -> B[5] \}$
+
+![Figure_2.2](./2.2.png)
+
+图2.2表示了二元关系的组合，其中褐色虚线为二元关系A，蓝色点线为二元关系B，红色实线为组合后的二元关系结果。
+
+如果反转A和B的调用顺序，结果是不同的：
+
+$A \circ B = \{A[2; 8; 1] -> B[5]; A[2; 8; 1] -> A[2; 8; 1] \}$
+
+iscc 的输入为:
+```python
+A := { B[6] -> A[2 ,8 ,1]; B[6] -> B[5] };
+B := { A[2 ,8 ,1] -> B [5]; A[2 ,8 ,1] -> B [6]; B[5] -> B[5] };
+B after A;
+A after B;
+```
+输出
+```python
+{ B[6] -> B [6]; B[6] -> B[5] }
+{ A[2, 8, 1] -> B [5]; A[2, 8, 1] -> A[2, 8, 1] }
+```
+
+一个二元关系R与自身的的组合R(R)可以写成$R^2$。类似的，$R^{-2}$表示R对于本身的逆的组合。推广后，对于一个二元关系的固定次幂的定义如下。
+
+### Operation 2.34 (Fixed Power of a Binary Relation)
+bla bla
+
+### Example 2.35
+bla bla
+
+### Example 2.36
+bla bla
+
+### 2.3.2 Comparisons
+能够在集合上进行的比较运算也可放在二元关系上。
+
+### Operation 2.37 (Equality of Binary Relations)
+二元关系 A和 B相等(A = B) 如果他们包含相同的元素对。
+
+在`isl`当中，该操作称为`isl_union_map_is_equal`。在`iscc`当中，该操作写作`=`。可见Operation 3.30
+
+### Operation 2.38 (Emptiness of a Binary Relation)
+如果一个二元关系不包含任何元素，那么它是空的，比如它和一个空的二元关系等价。
+
+在`isl`中，该操作为`isl_union_map_is_empty`。在`iscc`当中，该操作可以通过与一个空的二元关系比较来实现，可以看Operation 3.33。
+
+### Operation 2.39 (subrelation)
+bla bla
+
+### Operation 2.40 (Strict Subrelation)
+bla bla
+
+### Operation 2.41 (Superrelation)
+bla bla
+
+### Operation 2.42 (Strict Superrelation)
+bla bla
+
+### 2.3.3 Conversions
+本小节描述如何从集合或其它的方法来构建二元关系的操作。
+
+### Operation 2.43 (Domain of a Binary Relation)
+二元关系R的domain 用$dom\ R$表示，domain中的元素为二元关系中，元素对的所有第一个元素。即
+
+$dom\ R = \{i :\exist j : i -> j \in R \}$
+
+在`isl`中，该操作称为`isl_union_map_domain`。在`iscc`中，该操作写作`dom`或者`domain`。
+
+### Example 2.44
+考虑Example 2.24的集合，其domain为
+$\{A[2, 8, 1]; B[5] \}$
+
+*iscc的例子略过*
+
+### Operation 2.45 (Range of a Binary Relation)
+一个二元关系R的range包括所有二元关系R中元素对的第二个元素。即
+
+$ran\ R = \{j : \exist i : i>j \ in R\}$
+
+在`isl`当中，该操作写作`isl_union_map_range`。在`iscc`中写作`ran`或者`range`。
+
+### Example 2.46
+bla bla
+
+### Operation 2.47 (Universal Binary Relation between Sets)
+泛化关系（universal relation) 在两个集合A上的二元关系$A -> B$包含的元素对，其中第一个元素来自A，第二个元素来自B。
+
+$A \rightarrow B = \{i -> j : i \in A \land j \in B\}$
+
+在`isl`当中，该操作写作`isl_union_map_from_domain_and_range`，在`iscc`当中，该操作写作`->`。
 
 
 ## 2.4 Wrapped Relations
