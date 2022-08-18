@@ -558,3 +558,7 @@ iscc的输出：
 ```python
 { [ A [2 , 8 , 1] -> B [6]] -> B [6]; [ A [2 , 8 , 1] -> B [5]] -> B[5]; [ B [5] -> B [5]] -> B [5] }
 ```
+
+
+### 2.4.5 Difference Set Projection
+bla bla
