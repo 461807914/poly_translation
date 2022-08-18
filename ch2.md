@@ -296,6 +296,92 @@ $A \rightarrow B = \{i -> j : i \in A \land j \in B\}$
 
 在`isl`当中，该操作写作`isl_union_map_from_domain_and_range`，在`iscc`当中，该操作写作`->`。
 
+### Exmaple 2.48
+bla bla
+
+### Operation 2.49 (Identity Relation on a Set)
+bla bla
+
+### Example 2.50
+bla bla
+
+
+### 2.3.4 Mixed Operations
+本节描述一些组合二元关系和集合之间的操作
+
+### Operation 2.51 (DOmain Restriction)
+一个关于集合S的二元关系R的domain restriction表示为$R \cap_{dom}S$，要求二元关系R中的第一个元素在集合S当中。即：
+
+$R \cap_{dom}S = R \cap (S ->(ran\ R))$
+
+在`isl`中标识为`isl_union_map_intersect_domain`。在`iscc`中该操作写作`*`。
+
+### Exmaple 2.52
+```python
+R := { A[2 ,8 ,1] -> B [5]; A[2 ,8 ,1] -> B [6]; B[5] -> B[5] };
+S := { A[2 ,8 ,1]; C[5] };
+R * S;
+```
+输出为：
+```python
+{ A[2, 8, 1] -> B [6]; A[2, 8, 1] -> B[5] }
+```
+
+### Operation 2.53 (Range Restriction)
+一个关于集合S的二元关系R的range restriction $R \cap_{ran}S$，要求二元关系的第二个元素在集合S当中，即
+
+$R \cap_{ran}S = R \cap ((dom\ R)->S$
+
+在`isl`中标识为`isl_union_map_intersect_range`，在`iscc`中表示为`->*`。
+
+### Example 2.54
+```python
+R := { A[2 ,8 ,1] -> B [5]; A[2 ,8 ,1] -> B [6]; B[5] -> B[5] };
+S := { A[2 ,8 ,1]; B[5] };
+R ->* S;
+```
+输出为：
+
+```python
+{ A[2, 8, 1] -> B [5]; B[5] -> B[5] }
+```
+
+### Operation 2.55 (Domain Subtraction)
+bla bla
+
+### Example 2.56
+bla bla
+
+### Operation 2.57 (Range Subtraction)
+bla bla
+
+### Example 2.58
+bla bla
+
+### Operation 2.59 (Application)
+bla bla
+
+### Exmaple 2.60
+bla bla
+
+### 2.3.5 Properties
+虽然一个二元关系不一定表示（单值）函数，但是有些二元关系很可能是单值的。下面操作检查这个性质。
+
+### Operation 2.61 (Single-valued)
+bla bla
+
+### Example 2.62
+bla bla
+
+### Operation 2.63 (Injective)
+bla bla
+
+### Example 2.64
+bla bla
+
+### Operation 2.65 (Bijective)
+bla bla
+
 
 ## 2.4 Wrapped Relations
 虽然集合以命名整数元组表示，而二元关系以此类元组对表示，但有时使用两个以上此类元组之间的关系来表示会很方便。isl 目前不支持三元或一般 n 元关系。但是，它确实允许将一对元组组合成一个元组，然后该元组可以再次作为一对元组中的第一个或第二个元组出现。 这个过程称为“包装”（wrapped）。 包装一对命名整数元组的结果称为结构化命名整数元组（Structured named integer tuple)。
@@ -308,7 +394,11 @@ $A \rightarrow B = \{i -> j : i \in A \land j \in B\}$
 1. 一个命名整数元组表示为，一个标识符n，带有一个整数$i_j$满足$0≤j＜d$，且$d≥0$，写作$n[i_0, i_1,...,i_{d-1}]$
 2. 一个命名的结构化命名整数元组对表示为，一个标识符n，带有两个结构化命名整数元组i和j，写作$n[i->j]$
 
+---
 *就是对Named Integer Tuple进行一次抽象，Named Integer Tuple中的内容也可以是Named Integer Tuple*
+
+*集合中的内容可以是集合或者是二元关系，二元关系的映射可以嵌套二元关系以及集合*
+
 
 ### Example 2.67 
 下面的例子就是结构化命名整数元组的集合:
