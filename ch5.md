@@ -208,3 +208,54 @@ print P [3];
 ```
 
 请注意，访问关系不必是函数，因为多个元素被多面体语句的同一实例要么直接或间接有效地访问，或者因为不清楚正在访问哪个元素以便可以访问多个元素。 在最坏的情况下，可以访问整个数组，其中数组元素的集合是从数组的声明中派生的。如果此数组是 C 函数的函数参数，那么通过将 static 关键字放在其他虚拟大小表达式旁边来指定数组在外部维度中的大小也很重要。
+
+### Example 5.22
+清单 5.11 中分析的程序片段包含两个语句，它们从同一个实例访问同一个数组的多个元素。在语句S中，访问是通过调用 `set_diagonal` 函数间接执行的，而语句T仅包含对同一数组的两次读取访问（一次纯读取，一次更新）。 完整的访问关系显示在下面的脚本中。
+
+```python
+P := parse_file "demo/diagonal.c";
+print "Must-write:";
+print P [1];
+print "May-write:";
+print P [2];
+print "May-read:";
+print P [3];
+```
+输出结果为:
+```python
+"Must - write :"
+[n] -> { T[i, j] -> A[i, j] : 0 <= i < n and j > i and 0 <= j < n; S[] -> A[o0 , o0] : 0 <= o0 < n }
+"May - write :"
+[n] -> { T[i, j] -> A[i, j] : 0 <= i < n and j > i and 0 <= j < n; S[] -> A[o0 , o0] : 0 <= o0 < n }
+"May - read :"
+[n] -> { T[i, j] -> A[i, j] : 0 <= i < n and j > i and 0 <= j < n; T[i, j] -> A[i, -1 + j] : 0 <= i < n and j > i and 0 < j < n }
+```
+
+![listing.5.11](./list_5.11.png)
+
+
+### Example 5.23 
+
+代码清单里面展示一个程序，该程序中的索引表达式不能使用仿射表达式来表示。其中must-write访问关系为空，然而may-write的访问关系定义为访问整个数组，其中约束来自数组大小。访问关系由`pet`推到得到如下结果：
+
+```python
+P := parse_file " demo / square .c";
+print "Must - write :";
+print P [1];
+print "May - write :";
+print P [2];
+print "May - read :";
+print P [3];
+```
+
+输出为:
+```python
+"Must - write :"
+[n2 , n] -> { }
+"May - write :"
+[n2 , n] -> { S_0[i] -> A[o0] : 0 <= i < n and 0 <= o0 < n2 }
+"May - read :"
+[n2 , n] -> { }
+```
+
+![listing.5.12](./list_5.12.png)
