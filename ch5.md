@@ -239,7 +239,7 @@ print P [3];
 代码清单里面展示一个程序，该程序中的索引表达式不能使用仿射表达式来表示。其中must-write访问关系为空，然而may-write的访问关系定义为访问整个数组，其中约束来自数组大小。访问关系由`pet`推到得到如下结果：
 
 ```python
-P := parse_file " demo / square .c";
+P := parse_file " demo/square.c";
 print "Must - write :";
 print P [1];
 print "May - write :";
@@ -259,3 +259,97 @@ print P [3];
 ```
 
 ![listing.5.12](./list_5.12.png)
+
+### Alternative 5.24 (Exact Access Relations)
+许多方法不考虑单独的may-write和must-write访问关系，而只是考虑write关系这么一种。 然后，这些方法还需要对输入程序可能执行的访问类型施加限制。
+
+### Alternative 5.25 （(Per-Reference Access Relations）
+很多方法不考虑描述整个程序片段访问的全局的访问关系，而是对每个在多面体语句中的数组引用维护一个单独的访问关系。
+
+### Alternative 5.25 （Access Functions)
+一些方法不允许多面体语句实例内的引用访问多个数据元素并使用函数来表示访问而不是更通用的的关系。这些访问函数太牛然的定义在每个引用，通常也很精确。这样的访问函数与5.8节多面体语句中的索引表达式有一些相似的地方，但是并不完全相同。
+
+### 5.3.2 Aliasing
+为了能够正确地构造may-read访问关系和may-write访问关系，编译器需要了解程序中可能发生的任何别名。例如，一个语句写到A，A可能是B的别名，那么may-write访问关系需要包含语句访问B。在最坏的情况下，每个多面体语句实例的写操作都要考虑对所有数组的所有元素执行写操作的可能，这样的情况下u都面体模型就没有什么用处了。因此最好在程序中尽可能的避免使用别名，这也是为什么特别是在多面体编译当中不允许使用任何指针的操作。
+
+有如下三个方法避免使用别名:
+- 忽略别名，包括像`pet`这样的一些工具，简单的假设在两个不同的数组当中没有别名。
+- 禁止使用别名，这种方法的一种变体是从不允许别名的源语言中提取多面体模型。 但是，在诸如C之类的源语言中，确实需要考虑别名。本地声明的数组不能相互别名，但传递给函数的数组实际上是指向数组开头的指针（至少在 C 中），因此此类数组可以别名。关键字`restrict`可以用在这些指针上表示它们实际上没有别名。如果一个数组是通过函数传参而来的，那么外部外部数组的元素也是指针，并且应该对这些它们进行标识，以标识在数组的某一行之间没有别名。然而，在实际情况下传递的都是多维数组。在多维数组的情况下，一行中的数据连续存储在内存中，因此保证不会有别名产生。
+- 运行时别名检查，此方法为了分析和转换代码，会假定数组不使用别名，但是会搜集多组可能会有别名的数组。然后将额外代码插入到转换后的程序当中，以在运行时检查这些组（group）中是否有别名产生。如果没有别名，原始的代码会被执行，否则要将代码进行变换后再执行。
+
+
+### 5.3.3 structures
+访问一个plain的结构体，例如，结构体当中不包含任何指针，从原理上不需要任何特殊的对待。对于这样的访问，只要注意找到一个正确的表达方式。指针可以允许，但是为了避免产生引用，必须像函数参数或者嵌套数组的元素一样使用`restrict`关键字来进行修饰。递归数据结构更有挑战性，目前再多面体框架中如何表示它们还是不清楚。
+在`pet`中访问一个结构体的fileds使用wrapped关系进行编码。特别的，访问关系中的range是一个标识了结构体wrapped 关系，这个range关系的domain标识了结构体，range关系的range标识了结构体中的filed。这个wrapped 关系的标识符由外层的数组或者标量名称和字段的名称组成。
+
+### Example 5.27
+考虑代码清单5.13中的程序。它包含一个对c数组元素的b字段的写访问，结构体类型是`struct s`。对应的访问关系如下。
+
+输入为:
+```python
+P := parse_file " demo/struct.c";
+print P [1];
+```
+
+输出为:
+
+```python
+{ S[i] -> c_b[c[i, i] -> b[9 - i]] : 0 <= i <= 9 }
+```
+
+![listing.5.13](./list_5.13.png)
+
+### Example 5.28
+bla bla
+
+### Example 5.29
+bla bla
+
+
+### 5.3.4 Tagged Access Relations
+
+标准访问关系将语句实例映射到该语句实例访问的数据元素。 但是，给定的语句可能会多次引用相同的数据结构，在某些情况下，区分各个引用很重要。 例如，当`PPCG`确定将哪些数据复制到设备/从设备复制时，它会检查哪些写引用产生的数据仅在给定内核中使用。 这要求引用可以从依赖关系中识别出来，这反过来又要求它们被编码在访问关系中。
+
+在`pet`当中，对于程序中的每个引用都会生成一个独立的标识符。这些标识符后续会用来 **标记（tag)**那些执行访问的语句实例，因此称之为标记访问关系。尤其是，这样的标记访问关系的domain是一个wrapped 关系，domain是语句实例，range是引用标识符。通过计算domain产生的domain 因子可以可以用来去除标记访问关系的标记。标记访问关系可以从`pet_scop`中使用如下的函数抽取。
+
+- pet_scop_get_tagged_may_reads
+- pet_scop_get_tagged_may_writes
+- pet_scop_get_tagged_must_writes
+
+### Example 5.30
+程序清单5.11中的代码作为输入
+
+```python
+import isl
+import pet
+
+scop = pet.scop.extract_from_C_source(" demo/diagonal.c","f");
+may_read = scop.get_may_reads()
+tagged_may_read = scop.get_tagged_may_reads()
+print may_read
+print tagged_may_read
+factor = tagged_may_read.domain_factor_domain()
+print may_read.is_equal( factor )
+```
+
+输出为
+
+```python
+[n] -> { T[i, j] -> A[i, j] : 0 <= i < n and j > i and 0 <= j < n; T[i, j] -> A[i, -1 + j] : 0 <= i < n and j > i and 0 < j < n }
+[n] -> { [T[i, j] -> __pet_ref_2 []] -> A[i, j] : 0 <= i < n and j > i and 0 <= j < n; [T[i, j] -> __pet_ref_3 []] -> A[i, -1 + j] : 0 <= i < n and j > i and 0 < j < n }
+True
+```
+
+## 5.4 Dependence Relations
+本节仅描述依赖关系的一般概念。 依赖关系的计算在第 6 章依赖分析中描述。
+通常依赖是一堆语句实例，表示第二个应该在第一个实例执行后再取执行。一个依赖关系是一组依赖的集合。依赖的产生通常是两个语句实例要访问相同的内存元素。根据所涉及的两种访问的类型，可以区分不同类型的依赖关系。
+
+### Definition 5.31 (Read-after-Write Dependence Relation)
+写后读的依赖关系，如果语句实例j在语句实例i之后执行，并且j要读取被i写入后的元素，那么将语句实例i映射到语句实例j。
+
+### Definition 5.32 (Write-after-Read Dependence Relation)
+读后写依赖关系，如果语句实例j在i之后执行，并且j要写入被i读取之后的元素，那么将语句实例i映射到语句实例j。
+
+### Definition 5.33 (Write-after-Write Dependence Relation)
+写后写依赖关系，如果语句实例j在i之后执行，并且j要写入被i写入之后的元素，那么将语句实例i映射到语句实例j。
+
