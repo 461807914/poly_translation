@@ -799,3 +799,50 @@ True
 ```
 
 由于这些local布局在调度中与指定的位置绑定，因此它们通常集成在调度当中。尤其是，构建确定总顺序而不是部分顺序的调度已成为习惯，但随后将某些调度维度明确标记为表示并行执行而不是顺序执行。也就是说，这些调度维度不定义顺序，而是定义可以彼此独立执行的语句实例组（在调度中的那个位置）。
+
+### Example 5.54
+最内层和最外层的维度都标记为并行的完整调度$\{S[i, j, k] \mapsto [i, j, k]\}$，结合了5.52的布局以及5.53的前缀调度（5.26）以及局部布局（5.27）。在isl中，带节点的的成员可以被标记成
+一致的（coincident)，以指定相应的多空间分段拟仿射表达式标识相互独立的语句实例组。可以使用`isl_schedule_node_bank_member_set_coincident`来设置以及使用`isl_schedule_node_band_member_get_coincident`来读取全部。第一个函数包括两个额外的参数，分别是是带节点成员的下标和新的属性值。第二个函数只有一个参数，即带节点中带成员的下标。再YAML中的表示中，一致性通过一个额外的`concident`的可选key值来表示，该key值的形式在带节点上使用一个0/1序列的值来指示对应的带成员是否设置成一致的（coincident）。如果没有该key值，那么所有的值都默认是0，即所有的带成员都被认为不是一致的（coincident）。
+
+序列节点没有一致性的属性。取而代之的是另外一种节点类型，集合节点（set node），表示它的子节点可以互相独立的执行。在YAML中表示如下:
+
+**set node:**
+
+YAML的的映射仅作为key集合作为对应值的YAML序列，其中序列节点作为集合节点的子节点。
+
+### Example 5.55
+
+下面的代码展示了如何显示的对一些调度的带节点成员标记成一致性的。因为带节点都只有一个成员，因此在本例子当中，带节点的成员的位置始终都是0。
+
+```python
+import isl
+import pet
+scop = pet.scop.extract_from_C_source("demo/matmul.c", "matmul")
+schedule = scop.get_schedule()
+node = schedule.get_root().child(0)
+node = node.band_member_set_coincident(0, True)
+node = node.child (0)
+node = node.band_member_set_coincident(0, True)
+print node
+```
+输出为:
+
+```python
+domain : "[N, M, K] -> { I[i, j] : 0 <= i < M and 0 <= j < N; U[i, j, k] : 0 <= i < M and 0 <= j < N and 0 <= k < K }"
+child :
+    schedule : "[M, N, K] -> L_0 [{ I[i, j] -> [(i)]; U[i, j, k] -> [(i)] }]"
+    coincident : [1]
+    child :
+        # YOU ARE HERE
+        schedule : "[M, N, K] -> L_1 [{ I[i, j] -> [(j)]; U[i, j, k] -> [(j)] }]"
+        coincident : [1]
+        child :
+            sequence :
+            - filter : "[M, N, K] -> { I[i, j] }"
+            - filter : "[M, N, K] -> { U[i, j, k] }"
+                child :
+                    schedule : "[M, N, K] -> L_2 [{ U[i, j, k] -> [(k)]}]"
+```
+
+## 5.7 Context
+
