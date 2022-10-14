@@ -182,9 +182,9 @@ child:
 
 **重点:**
 
-迭代域数据元素类型是presburger 运算的集合，描述一个语句的迭代范围;
-访问关系是是presburger运算的关系，描述的是一个语句实例到变量之间的映射，即当前的语句实例会访问哪些内存单元，包括写或者读（注意区分语句和语句实例的概念）;
-原始的调度信息是以调度树的形式表现的。
+- 迭代域数据元素类型是presburger 运算的集合，描述一个语句的迭代范围;
+- 访问关系是是presburger运算的关系，描述的是一个语句实例到变量之间的映射，即当前的语句实例会访问哪些内存单元，\[语句实例\]->\[内存变量\]包括写或者读（注意区分语句和语句实例的概念）;
+- 原始的调度信息是以调度树的形式表现的。
 
 ## 读写关系
 
@@ -299,3 +299,155 @@ child:
 
 在ch6原文中对数据流依赖的解释是:a data flow dependence is a read-after-write dependence for which there is no intermediate write to the same memory location.
 即数据流依赖是一个没有对相同内存位置执行写入操作的写后读依赖。
+
+既然需要判断哪些内存单元被访问了，那么\[语句实例\]->\[语句实例\]这样的读写访问关系表达方式就不会体现出对哪写内存变量进行访问，因此要对原始的读和写的访问关系中访问内存变量的部分机进行保留。保留的方法为将读、写的形式\[语句实例\]->\[内存变量\]修改成\[\[语句实例\]->\[内存变量\]\] -> \[内存变量\]这样的形式，再后续的关系运算中，即使消去range部分的内容，也能保留内存变量这一信息。以读操作为例，该操作的数学符号形式为$R_1 = \xrightarrow{ran}R$，该操作为投影运算，详见ch2 operation 2.102。 类似的，如果想要保留一个映射当中的信息（key或者value），就可以使用投影运算来实现。
+
+上面的读写关系变成了\[\[语句实例\]->\[内存变量\]\] -> \[内存变量\]这样的形式，但是需要与之进行运算的调度顺序$<_S$的形式为\[语句实例\]->\[语句实例\]，无法与投影后的读写关系进行运算，因此需要将调度顺序的计算公式也要修改一下。
+
+$S_1 = S \circ (\xrightarrow{dom}(R \cup W)$
+
+其中$\xrightarrow{dom}$表示再domain上的投影，再对得到的$S_1$使用iscc中的$S_1 << S_1$运算，即可得到变换后的调度顺序。
+
+计算数据流依赖的方法根据定义，其计算公式为:
+
+$F_1 = D_1 /\ (D_1 \circ O_1)$，其中斜线表示集合集合减法操作。$D_1$和$O_1$分别为变换后的写后读依赖以及写后写依赖关系。
+
+其中$D_1$和$O_1$的计算公式如下:
+
+$D_1 = (R^{-1}_1 \circ W_1) \cap <_{S_1}$ 
+
+$O_1 = (W^{-1}_1 \circ W_1) \cap <_{S_1}$ 
+
+代码为:
+
+```shell
+P := parse_file "source.c";
+Write := P[2];
+Read := P[3];
+Schedule := map(P[4]);
+
+# range project operation
+Write1 := range_map Write;
+Read1 := range_map Read;
+
+print "Write:";
+print Write;
+
+print "Write1:";
+print Write1;
+
+print "Read:";
+print Read;
+
+print "Read1:"
+print Read1;
+
+Schedule1 := (domain_map (Read + Write)) . Schedule;
+
+print "Schedule:";
+print Schedule;
+
+print "Schedule1:";
+print Schedule1;
+
+Order1 := Schedule1 << Schedule1;
+
+print "Order1:";
+print Order1;
+
+RAW := (Write1 . Read1^-1) * Order1;
+WAW := (Write1 . Write1^-1) * Order1;
+
+print "read after write:";
+print RAW;
+
+print "write after write:";
+print WAW;
+
+Flow := RAW - (WAW . RAW);
+
+print "flow:";
+print Flow;
+```
+
+输出为
+
+```shell
+"Write:"
+[n] -> { S_3[i] -> B[i] : 0 <= i < n; S_2[i] -> t[] : 0 <= i < n }
+"Write1:"
+[n] -> { [S_3[i] -> B[i]] -> B[i] : 0 <= i < n; 
+         [S_2[i] -> t[]] -> t[] : 0 <= i < n }
+"Read:"
+[n] -> { S_3[i] -> t[] : 0 <= i < n; 
+         S_2[i] -> A[i] : 0 <= i < n }
+"Read1:"
+[n] -> { [S_3[i] -> t[]] -> t[] : 0 <= i < n;
+         [S_2[i] -> A[i]] -> A[i] : 0 <= i < n }
+"Schedule:"
+[n] -> { S_3[i] -> [i, 1]; 
+         S_2[i] -> [i, 0] }
+"Schedule1:"
+[n] -> { [S_2[i] -> t[]] -> [i, 0] : 0 <= i < n;
+         [S_2[i] -> A[i]] -> [i, 0] : 0 <= i < n;
+         [S_3[i] -> t[]] -> [i, 1] : 0 <= i < n;
+         [S_3[i] -> B[i]] -> [i, 1] : 0 <= i < n }
+"Order1:"
+[n] -> { [S_3[i] -> B[i]] -> [S_3[i'] -> t[]] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_2[i] -> t[]] -> [S_3[i'] -> B[i']] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_2[i] -> t[]] -> [S_3[i' = i] -> B[i]] : 0 <= i < n;
+         [S_2[i] -> A[i]] -> [S_2[i'] -> A[i']] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_3[i] -> B[i]] -> [S_2[i'] -> A[i']] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_2[i] -> t[]] -> [S_2[i'] -> t[]] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_2[i] -> A[i]] -> [S_3[i'] -> B[i']] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_2[i] -> A[i]] -> [S_3[i' = i] -> B[i]] : 0 <= i < n;
+         [S_2[i] -> A[i]] -> [S_3[i'] -> t[]] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_2[i] -> A[i]] -> [S_3[i' = i] -> t[]] : 0 <= i < n;
+         [S_2[i] -> A[i]] -> [S_2[i'] -> t[]] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_2[i] -> t[]] -> [S_2[i'] -> A[i']] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_3[i] -> t[]] -> [S_2[i'] -> A[i']] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_3[i] -> t[]] -> [S_2[i'] -> t[]] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_3[i] -> B[i]] -> [S_3[i'] -> B[i']] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_3[i] -> B[i]] -> [S_2[i'] -> t[]] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_3[i] -> t[]] -> [S_3[i'] -> B[i']] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_2[i] -> t[]] -> [S_3[i'] -> t[]] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_2[i] -> t[]] -> [S_3[i' = i] -> t[]] : 0 <= i < n;
+         [S_3[i] -> t[]] -> [S_3[i'] -> t[]] : 0 <= i < n and i' > i and 0 <= i' < n }
+"read after write:"
+[n] -> { [S_2[i] -> t[]] -> [S_3[i'] -> t[]] : 0 <= i < n and i' > i and 0 <= i' < n;
+         [S_2[i] -> t[]] -> [S_3[i' = i] -> t[]] : 0 <= i < n }
+"write after write:"
+[n] -> { [S_2[i] -> t[]] -> [S_2[i'] -> t[]] : 0 <= i < n and i' > i and 0 <= i' < n }
+"flow:"
+[n] -> { [S_2[i] -> t[]] -> [S_3[i' = i] -> t[]] : 0 <= i < n }
+```
+
+可以看到上面的写后读关系变成了\[\[语句实例\]->\[内存变量\]\]->\[\[语句实例\]->\[内存变量\]\]的形式，保留了内存变量的信息。
+
+如果不想将调度S变换成$S_1$，可以使用如下的计算公式也达到相同的效果。
+
+$D_1 = zip((zip(R^{-1}_1 \circ W_1)) \cap {}_{dom} WRAP(<_S))$
+
+$O_1 = zip((zip(W^{-1}_1 \circ W_1)) \cap {}_{dom} WRAP(<_S))$
+
+再带入到公式 $F_1 = D_1 /\ (D_1 \circ O_1)$ 当中，结果相同。
+
+
+观察一下写后读的关系表达式，其中包含两个表达式，分别为:
+
+```shell
+# 第一个
+[S_2[i] -> t[]] -> [S_3[i'] -> t[]] : 0 <= i < n and i' > i and 0 <= i' < n;
+
+# 第二个
+[S_2[i] -> t[]] -> [S_3[i' = i] -> t[]] : 0 <= i < n
+```
+
+其中第一个表达式表达的内容，满足条件的情况包括`S_2[0]`先写入到`t`当中，`S_3[1]`再读取t中的内容，很显然，S_2写入的t与S_3读取的t不是一个，正常情况应该像第二个表达式一样，`s_2[0]`先写入到t，随后`S_3[0]`读取t。
+
+即第二个表达式的关系是满足程序中数据流动的情况的。第一个表达式只能说它满足先写后读这样的关系，而数据流依赖关系就是为了去掉写后读依赖中存在的第一个表达式的情况。
+
+
+即使用$RAW \circ WAR$即得到第一个表达式
+
+这是因为，写后写的依赖关系，在描述内存变量t时，只能描述该变量随着迭代下标表示的先后写入关系。
