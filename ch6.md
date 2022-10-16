@@ -472,7 +472,9 @@ $\{ i \rightarrow a \in K : \neg (\exists j : j \rightarrow a \in (T \cup Y) \la
 是不是可以理解成如下？
 
 `sink`就是`may-read`；`may-source`就是`may-write`；`must-source`就是`must-write` ?
+详见ch5 关于`parse_file`部分对该接口的解释，返回内容按顺序为`instance set`、`must-write`访问关系、`may-write`访问关系、`may-read`访问关系以及一个`origin schedule`。
 
+注意没有`must-read`在iscc中的表示，见ch5中的note 5.3
 ---
 
 ### Example 6.6
@@ -482,8 +484,8 @@ $\{ i \rightarrow a \in K : \neg (\exists j : j \rightarrow a \in (T \cup Y) \la
 
 ```python
 P := parse_file "demo/false.c";
-Write := P[2];
-Read := P[3];
+Write := P[2]; # may-write
+Read := P[3]; # may-read
 Schedule := P[4];
 F := last Write before Read under Schedule ; # 应该可以直接从语法上来猜测该功能，“在调度的条件下，读之前的最后一次写操作”， 就是在计算数据流依赖。
 print " Flow dependences :";
@@ -502,4 +504,115 @@ print F[1];
 ```
 
 ### Example 6.7
+下面代码展示了与Example 6.6相同的计算，但是这部分代码没有假定写访问关系是精确的。因为如果写访问关系是精确的，那么结果与之前相同。
 
+```python
+import isl
+import pet
+pet.options.set_autodetect(True)
+scop = pet.scop.extract_from_C_source("demo/false.c", "f")
+schedule = scop.get_schedule()
+may_read = scop.get_may_reads()
+may_write = scop.get_may_writes()
+must_write = scop.get_must_writes()
+access = isl.union_access_info(may_read)
+access = access.set_may_source(may_write)
+access = access.set_must_source(must_write)
+access = access.set_schedule(schedule)
+flow = access.compute_flow()
+print "May - flow dependences :"
+print flow.get_may_dependence()
+print "May -live -in accesses :"
+print flow.get_may_no_source()
+```
+输出为:
+
+```python
+May - flow dependences :
+[n] -> { S[i] -> T[i] : 0 <= i < n }
+May -live -in accesses :
+[n] -> { S[i] -> A[i] : 0 <= i < n }
+```
+
+---
+上面的代码也展示了如何使用python接口实现计算
+
+---
+精确数据流分析代表了近似数据流分析的极端情况，其中仅指定了`must-source`，而第 6.1 节的依赖分析则处于另一个极端，仅指定了`may-source`。尤其是，通过将`may-source`设置为`may-write`访问关系并将`sink`设置为`may-read`访问关系来计算写后读依赖关系。类似，读后写依赖关系的计算可以设置为，`may-source`设置为`may-read`访问关系，`sink`设置为`may-write`访问关系，同时，写后写依赖关系的计算通过将`may-source`和`sink`设置为`may-write`访问关系。
+
+### Exmaple 6.8
+下面代码重复了exmaple 6.1中的部分，并使用近似数据流分析方法。
+
+```python
+P := parse_file "demo/false.c";
+Write := P[2];
+Read := P[3];
+Schedule := P[4];
+print "Read -after - write dependence relation :";
+any Write before Read under Schedule ;
+print "Write -after - read dependence relation :";
+any Read before Write under Schedule ;
+print "Write -after - write dependence relation :";
+any Write before Write under Schedule ;
+```
+
+输出为:
+```python
+"Read -after - write dependence relation :"
+[n] -> { S[i] -> T[i'] : i >= 0 and i <= i' < n }
+"Write -after - read dependence relation :"
+[n] -> { T[i] -> S[i'] : i >= 0 and i < i' < n }
+"Write -after - write dependence relation :"
+[n] -> { S[i] -> S[i'] : i >= 0 and i < i' < n }
+```
+
+为了计算标记的`may-dataflow`依赖关系或标记的`must-dataflow`依赖关系，需要对标记的访问关系应用近似数据流分析。但是，这些关系的域不是实例集的子集，因此它们与调度的域不匹配。然而，可以将调度拉回以应用于标记访问关系的域。
+
+### Example 6.9
+
+```python
+import isl
+import pet
+pet.options.set_autodetect ( True )
+scop = pet.scop.extract_from_C_source("demo/false.c", "f")
+schedule = scop.get_schedule()
+may_read = scop.get_tagged_may_reads()
+may_write = scop.get_tagged_may_writes()
+must_write = scop.get_tagged_must_writes()
+tagged_instances = may_write.union(may_read).domain()
+tagged_instances = tagged_instances.unwrap()
+drop_tags = tagged_instances.domain_map_union_pw_multi_aff()
+schedule = schedule.pullback(drop_tags)
+access = isl.union_access_info(may_read)
+access = access.set_may_source(may_write)
+access = access.set_must_source(must_write)
+access = access.set_schedule(schedule)
+flow = access.compute_flow()
+print " Tagged may - read access relation :"
+print may_read
+print " Tagged may - write access relation :"
+print may_write
+print " Tagged may - flow dependences :"
+print flow.get_may_dependence()
+print " Tagged may -live -in accesses :"
+print flow.get_may_no_source()
+```
+
+输出
+
+```python
+
+Tagged may - read access relation :
+[n] -> { [T[i] -> __pet_ref_4 []] -> t[] : 0 <= i < n; [S[i] -> __pet_ref_2 []] -> A[i] : 0 <= i < n }
+Tagged may - write access relation :
+[n] -> { [S[i] -> __pet_ref_1 []] -> t[] : 0 <= i < n; [T[i] -> __pet_ref_3 []] -> B[i] : 0 <= i < n }
+Tagged may - flow dependences :
+[n] -> { [S[i] -> __pet_ref_1 []] -> [T[i] -> __pet_ref_4 []] : 0 <= i < n }
+Tagged may -live -in accesses :
+[n] -> { [S[i] -> __pet_ref_2 []] -> A[i] : 0 <= i < n }
+```
+
+---
+没太明白上面的含义
+
+---
