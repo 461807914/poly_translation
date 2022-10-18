@@ -405,12 +405,13 @@ print F;
 回想一下基于内存的依赖分析以及基于值的依赖关系分析的主要区别。其区别主要是在基于值的依赖分析中，一个写入操作会杀死所有第一次写入之前的另一个写入和第一次写入之后的读取。本章节中，对近似数据流依赖背后的主要主要思想是仅允许必然写入操作（`must-write`）杀死任何依赖关系。在最糟糕的情况下，所有的可能写入（`may-writes`）都不是必然写入（`must-writes`），并且最后得到的依赖分析与基于内存的依赖分析结果相同。为了不太具体到标准的数据流分析，**所有的操作都是使用may-sources（可能源点）、must-sources（必然源点）以及sinks（汇点）的表示方式，而不使用may-writes、must-writes以及reads的表示方式。** 
 
 ---
-仔细理解上面的这段话
+上面的汇点、必然源点以及可能源点都是指什么？从文中的意思来看是对应may-writes、must-writes以及reads嘛？
+
 
 ---
 
 ### Operation 6.5(近似数据流分析)
-近似数据分析的输入有三个二元关系和一个在二元关系的域上的调度。三个二元关系分别称为汇点（sink）K，可能源点（may-source）Y，以及必然源点T。调度S用于估算以下句子中的谓词“last"，“before”, “after”。(ps: 这三个谓词是什么意思?）对于汇点的每个域(domain）元素`i`与其对应的范围（range）元素`a`，近似数据流分析确定必然源点（`must-source`）的最后一个域（domain）元素`j`，该域元素在`i`之前执行并且也有`a`作为对应的范围（range） 元素。进一步，该分析收集了在`i`之前和`j`之后执行的所有`may-source`的域元素`k`，并且还具有`a`作为对应的范围元素。如果对于一个特定的`i`和`a`这样的组合找不到对应的`j`，那么`after j`条件会被丢弃。换句话说，对于汇点的每个域元素以及每个对应的范围元素，搜集之前执行的共享该范围元素的的`must-source`和`may-source`的域元素，直到找到`must-source`的域元素。所有搜集到的，诸如$j \rightarrow (i \rightarrow a)$以及$k \rightarrow (i \rightarrow a)$的三元组组成了可能依赖关系（may-dependence relation）。$j \rightarrow (i \rightarrow a)$没有中间`k`的子集组成必然依赖关系（`must-dependence` relation）。如果一个汇点没有对应的域元素`j`，那么它的子集可以组成可能无源关系（`may-no-source` relation）。如果一个汇点没有对应的域元素`j`或者`k`，那么它的子集组成必然无源关系（`must-no-source` relation）。
+近似数据分析的输入有三个二元关系和一个在二元关系的域上的调度。三个二元关系分别称为汇点（sink）K，可能源点（may-source）Y，以及必然源点（must-source）T。调度S用于估算以下句子中的谓词“last"，“before”, “after”。(ps: 这三个谓词是什么意思?）对于汇点(`sink`)的每个域(domain）元素`i`与其对应的范围（range）元素`a`，近似数据流分析确定必然源点（`must-source`）的最后一个域（domain）元素`j`，该域元素在`i`之前执行并且也有`a`作为对应的范围（range） 元素。进一步，该分析收集了在`i`之前和`j`之后执行的所有`may-source`的域元素`k`，并且还具有`a`作为对应的范围元素。如果对于一个特定的`i`和`a`这样的组合找不到对应的`j`，那么`after j`条件会被丢弃。换句话说，对于汇点（`sink`)的每个域元素以及每个对应的范围元素，搜集之前执行的共享该范围元素的的`must-source`和`may-source`的域元素，直到找到`must-source`的域元素。所有搜集到的，诸如$j \rightarrow (i \rightarrow a)$以及$k \rightarrow (i \rightarrow a)$的三元组组成了可能依赖关系（may-dependence relation）。$j \rightarrow (i \rightarrow a)$没有中间`k`的子集组成必然依赖关系（`must-dependence` relation）。如果一个汇点(`sink`)没有对应的域元素`j`，那么它的子集可以组成可能无源关系（`may-no-source` relation）。如果一个汇点(`sink`)没有对应的域元素`j`或者`k`，那么它的子集组成必然无源关系（`must-no-source` relation）。
 
 即，may-dependence的关系为
 
@@ -448,19 +449,44 @@ $\{ i \rightarrow a \in K : \neg (\exists j : j \rightarrow a \in (T \cup Y) \la
 在`iscc`中，近似数据流分析可以使用`last-any-before-under`的操作来实现。其中，参数`last`指定了must-source，参数`any`指定了may-source，参数`before`指定了sink，参数`under`指定了调度（使用调度树或者二元关系的形式）。`last`或`any` 之一（连同其参数）可以省略。如果`last`被使用，那么结果是一个包含must-dependence关系和must-no-source关系的列表。否则，输出是一个may-dependence关系。
 
 ---
-本section相当重要，可惜以上内容没太看明白 orz。（有一些概念在数据流分析的教程中没有看到）
+本section相当重要，其主要思想类似数据流分析中的reaching-definition 分析。
 
-其中有一些概念需要先弄明白
-- source，即源的概念是指什么?
-- sink
-- may-source
-- must-source
-- may-no-source
-- must-no-source
+从上面的解释来看
+
+- sink 对应于 read
+- may-source，对应于 may-writes
+- must-source 对应于 must-writes
+
+对6.5下面那段话，可以做如下理解:
+其中读的概念（reads）抽象为sink；写的概念抽象为must-source或者may-source（对应于must-writes以及may-writes）。这里的read仅考虑may-read，即某一个语句对一个变量可能有读取操作；这里的writes分开考虑可能写入以及必然写入操作。
+
+对于read（sink)可以抽象出一段二元关系，即 domain $\rightarrow$ range，这里表示为 $i \rightarrow a$ 表示语句的某个实例i要读取某个变量a；
+
+对于must-writes(must-source)抽象出一段二元关系，这里表示为$j \rightarrow a$ 表示语句的某个实例j写入变量a，注意这里限定j必须出现再i之前，从而表示对a元素先写后读。
+
+对于may-writes（may-source）抽象出一段二元关系，这里表示为$k \rightarrow a$ 表示语句实例k**可能**会写入变量a，注意这里限定k必须出现再j和i之间。
+
+如果$i \rightarrow a$这样的组合找不到对应的j，那么谓词`after`条件就会作为（大概意思就是返回值为空吧）
+
+如果对于$i \rightarrow a$可以找到对应的j和k，那么就构造这样的三元组:$j \rightarrow (i \rightarrow a)$以及$k \rightarrow (i \rightarrow a)$
+
+以上两者组成了可能依赖关系
+
 - may-dependence
+
+如果不存在j到i中间的k值，那么称为必然依赖关系
+
 - must-dependence
 
-可以先看一下例子再回过头来理解这些概念
+如果i找不到一个j，那么有可能没有写操作，即：
+
+- may-no-source
+
+如果i找不到j和k，那么一定没有写操作，即：
+
+- must-no-source
+
+
 
 ---
 
@@ -475,6 +501,7 @@ $\{ i \rightarrow a \in K : \neg (\exists j : j \rightarrow a \in (T \cup Y) \la
 详见ch5 关于`parse_file`部分对该接口的解释，返回内容按顺序为`instance set`、`must-write`访问关系、`may-write`访问关系、`may-read`访问关系以及一个`origin schedule`。
 
 注意没有`must-read`在iscc中的表示，见ch5中的note 5.3
+
 ---
 
 ### Example 6.6
